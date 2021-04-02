@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# SerDes object that can be used to create custom serializers/deserializers.
+# A SerDes object that can be used to create custom serializers/deserializers.
 public type SerDes object {
 
     public isolated function serialize(anydata data) returns byte[]|Error;
