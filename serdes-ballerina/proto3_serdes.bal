@@ -23,7 +23,7 @@ public class Proto3SerDes {
     # Generates a schema for a given data type.
     #
     # + ballerinaDataType - The data type of the value that needs to be serialized
-    # + return - `serdes:Error` if the data type is not supported else nil
+    # + return - A `serdes:Error` if the data type is not supported or else `()`
     public isolated function init(typedesc<anydata> ballerinaDataType) returns Error? {
         self.dataType = ballerinaDataType;
         check generateSchema(self, ballerinaDataType);
