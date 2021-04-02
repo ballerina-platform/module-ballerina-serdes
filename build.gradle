@@ -59,16 +59,7 @@ def moduleVersion = project.version.replace("-SNAPSHOT", "")
 subprojects {
     apply plugin: 'java'
 
-    configurations {
-        ballerinaStdLibs
-    }
-
-    dependencies {
-        /* Standard libraries */
-    }
-
     release {
-        // Disable check snapshots temporarily
         buildTasks = []
         failOnSnapshotDependencies = true
         versionPropertyFile = 'gradle.properties'
