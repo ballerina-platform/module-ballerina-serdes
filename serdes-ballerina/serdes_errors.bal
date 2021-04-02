@@ -14,5 +14,5 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Returns for schema generation failures
+# Represents any error related to Ballerina SerDes module
 public type Error distinct error;

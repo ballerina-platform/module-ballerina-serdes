@@ -23,7 +23,6 @@ public isolated function testUnsupportedDataType() returns error? {
     string expected = "Unsupported data type: table";
 
     Proto3SerDes|error ser = new(EmployeeTable);
-
     test:assertTrue(ser is Error);
     Error err = <Error> ser;
     test:assertEquals(err.message(), expected);
@@ -35,7 +34,6 @@ public isolated function testTypeMismatch() returns error? {
 
     Proto3SerDes ser = check new(float);
     byte[]|error encoded = ser.serialize(123);
-
     test:assertTrue(encoded is Error);
     Error err = <Error> encoded;
     test:assertEquals(err.message(), expected);
@@ -57,10 +55,8 @@ public isolated function testRecordTypeMismatch() returns error? {
     string expected = "Failed to Serialize data: Type mismatch";
 
     Engineer SE = {name: "Jane Doe", id: 123};
-
     Proto3SerDes ser = check new(Chairman);
     byte[]|error encoded = ser.serialize(SE);
-
     test:assertTrue(encoded is Error);
     Error err = <Error> encoded;
     test:assertEquals(err.message(), expected);

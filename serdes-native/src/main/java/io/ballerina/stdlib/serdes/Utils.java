@@ -41,6 +41,8 @@ public class Utils {
         return serdesModule;
     }
 
+    public static final String SERDES_ERROR = "Error";
+
     public static BError createSerdesError(String message, String typeId) {
         return ErrorCreator.createError(getModule(), typeId, StringUtils.fromString(message), null, null);
     }

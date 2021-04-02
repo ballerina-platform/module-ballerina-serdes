@@ -30,7 +30,6 @@ import java.util.Map;
 public class DataTypeMapper {
     private static Map<String, String> javaTypeToProto;
     private static Map<Integer, String> ballerinaTypeTagToProto;
-
     public static String getProtoTypeFromJavaType(String type) {
         return javaTypeToProto.get(type);
     }

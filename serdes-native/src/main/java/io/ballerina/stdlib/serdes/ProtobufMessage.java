@@ -21,24 +21,25 @@ package io.ballerina.stdlib.serdes;
 import com.google.protobuf.DescriptorProtos;
 
 /**
-* Protobuf Message Class.
+* Protobuf Message Class that describes a single Protobuf Message.
 *
 */
 public class ProtobufMessage {
     // Describes a message type
     private DescriptorProtos.DescriptorProto protobufMessage;
 
-    // Constructor
+    // Constructor to create a new Protobuf Message
     public ProtobufMessage(DescriptorProtos.DescriptorProto message) {
         protobufMessage = message;
     }
 
+    // Creates a new Protobuf Message builder
     public static ProtobufMessageBuilder newMessageBuilder(String messageName) {
         return new ProtobufMessageBuilder(messageName);
     }
 
+    // Returns the generated message in a human readable format
     public DescriptorProtos.DescriptorProto getProtobufMessage() {
         return protobufMessage;
     }
-
 }

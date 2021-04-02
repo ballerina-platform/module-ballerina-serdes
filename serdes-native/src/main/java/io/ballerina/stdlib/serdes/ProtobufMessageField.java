@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
-* Message Field Definitions.
+* Describes the field definitions in a Protobuf Message.
 *
 */
 public class ProtobufMessageField {

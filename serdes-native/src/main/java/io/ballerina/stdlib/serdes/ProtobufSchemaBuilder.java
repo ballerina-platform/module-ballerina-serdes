@@ -25,12 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-* Schema Builder class.
+* Schema Builder class that parses the .proto file after adding the generated message.
 *
 */
 public class ProtobufSchemaBuilder {
+
     // Describes a complete .proto file
     private DescriptorProtos.FileDescriptorProto.Builder fileDescriptorProtoBuilder;
+
     // FileDescriptorSet containing the .proto files the compiler parses.
     private DescriptorProtos.FileDescriptorSet.Builder fileDescriptorSetBuilder;
 
@@ -58,22 +60,10 @@ public class ProtobufSchemaBuilder {
         newFileDescriptorSetBuilder.addFile(fileDescriptorProtoBuilder.build());
         newFileDescriptorSetBuilder.mergeFrom(fileDescriptorSetBuilder.build());
         DescriptorProtos.FileDescriptorSet fileDescriptorSet = newFileDescriptorSetBuilder.build();
-
         Descriptors.FileDescriptor fileDescriptor = null;
+
         for (DescriptorProtos.FileDescriptorProto fileDescriptorProto : fileDescriptorSet.getFileList()) {
             List<Descriptors.FileDescriptor> resolvedFileDescriptors = new ArrayList<>();
-
-            /* Resolve import dependencies
-            List<String> dependencies = fileDescriptorProto.getDependencyList();
-            Map<String, Descriptors.FileDescriptor> resolvedFileDescMap = new HashMap<String, Descriptors
-                                                                                                .FileDescriptor>();
-
-            for (String dependency : dependencies) {
-                Descriptors.FileDescriptor fd = resolvedFileDescMap.get(dependency);
-                if (fd != null) resolvedFileDescriptors.add(fd);
-            }
-            */
-
             Descriptors.FileDescriptor[] fileDescriptorArray = new Descriptors
                                                                     .FileDescriptor[resolvedFileDescriptors.size()];
             fileDescriptor = Descriptors.FileDescriptor
@@ -83,7 +73,6 @@ public class ProtobufSchemaBuilder {
         for (Descriptors.Descriptor messageType : fileDescriptor.getMessageTypes()) {
             messageBuilder = messageType;
         }
-
         return messageBuilder;
     }
 }

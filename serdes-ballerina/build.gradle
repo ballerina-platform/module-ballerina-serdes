@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,11 +74,6 @@ task unpackJballerinaTools(type: Copy) {
         from zipTree(artifact.getFile())
         into new File("${buildDir}/target/extracted-distributions", "jballerina-tools-zip")
     }
-}
-
-task copyStdlibs(type: Copy) {
-    def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
-    into ballerinaDist
 }
 
 task updateTomlFile {
@@ -251,8 +246,7 @@ publishing {
 
 }
 
-copyStdlibs.dependsOn unpackJballerinaTools
-copyToLib.dependsOn copyStdlibs
+copyToLib.dependsOn unpackJballerinaTools
 updateTomlFile.dependsOn copyToLib
 
 ballerinaTest.dependsOn ":${packageName}-native:build"

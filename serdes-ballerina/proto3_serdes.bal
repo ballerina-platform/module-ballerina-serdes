@@ -18,7 +18,6 @@ import ballerina/jballerina.java;
 
 public class Proto3SerDes {
     *SerDes;
-
     private typedesc<anydata> dataType;
 
     # Generates a schema for a given data type.
