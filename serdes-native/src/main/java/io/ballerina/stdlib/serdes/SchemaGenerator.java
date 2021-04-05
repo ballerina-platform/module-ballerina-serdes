@@ -93,12 +93,7 @@ public class SchemaGenerator {
         if (type.getTag() <= TypeTags.BOOLEAN_TAG) {
             String ballerinaToProtoMap = DataTypeMapper.getProtoTypeFromTag(type.getTag());
             ProtobufMessageBuilder messageBuilder = ProtobufMessage.newMessageBuilder(ballerinaToProtoMap);
-            buildProtobufMessageForBallerinaPrimitiveType(
-                    messageBuilder,
-                    ballerinaToProtoMap,
-                    ATOMIC_FIELD_NAME,
-                    1
-            );
+            buildProtobufMessageForBallerinaPrimitiveType(messageBuilder, ballerinaToProtoMap, ATOMIC_FIELD_NAME, 1);
             return messageBuilder.build();
         } else if (type.getTag() == TypeTags.UNION_TAG) {
             ProtobufMessage protobufMessage = buildProtobufMessageForBallerinaUnionType(type, UNION_FIELD_NAME);
@@ -109,13 +104,7 @@ public class SchemaGenerator {
         } else if (type.getTag() == TypeTags.ARRAY_TAG) {
             ArrayType arrayType = (ArrayType) type;
             ProtobufMessageBuilder messageBuilder = ProtobufMessage.newMessageBuilder(ARRAY_BUILDER_NAME);
-            buildProtobufMessageForBallerinaArrayType(
-                    messageBuilder,
-                    arrayType,
-                    ARRAY_FIELD_NAME,
-                    1,
-                    1
-            );
+            buildProtobufMessageForBallerinaArrayType(messageBuilder, arrayType, ARRAY_FIELD_NAME, 1, 1);
             return messageBuilder.build();
         } else if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
             RecordType recordType = (RecordType) type;
@@ -157,13 +146,8 @@ public class SchemaGenerator {
                 nestedMessageName = nestedArrayType.getElementType().getName();
             }
             ProtobufMessageBuilder nestedMessageBuilder = ProtobufMessage.newMessageBuilder(nestedMessageName);
-            buildProtobufMessageForBallerinaArrayType(
-                    nestedMessageBuilder,
-                    nestedArrayType,
-                    nestedMessageName,
-                    1,
-                    unionFieldIdentifier
-            );
+            buildProtobufMessageForBallerinaArrayType(nestedMessageBuilder, nestedArrayType, nestedMessageName, 1,
+                                                      unionFieldIdentifier);
             messageBuilder.addNestedMessage(nestedMessageBuilder.build());
             messageBuilder.addField(REPEATED_LABEL, nestedMessageName, name, number);
         } else if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
@@ -195,22 +179,14 @@ public class SchemaGenerator {
                 messageBuilder.addField(OPTIONAL_LABEL, unionFieldType, fieldName, number);
             } else if (fieldType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 RecordType recordType = (RecordType) fieldType;
-                ProtobufMessage nestedMessage = buildProtobufMessageForBallerinaRecordType(
-                        recordType.getFields(),
-                        recordType.getName()
-                );
+                ProtobufMessage nestedMessage = buildProtobufMessageForBallerinaRecordType(recordType.getFields(),
+                                                                                           recordType.getName());
                 String nestedFieldType = recordType.getName();
                 messageBuilder.addNestedMessage(nestedMessage);
                 messageBuilder.addField(OPTIONAL_LABEL, nestedFieldType, fieldName, number);
             } else if (fieldType.getTag() == TypeTags.ARRAY_TAG) {
                 ArrayType arrayType = (ArrayType) fieldType;
-                buildProtobufMessageForBallerinaArrayType(
-                        messageBuilder,
-                        arrayType,
-                        fieldName,
-                        number,
-                        1
-                );
+                buildProtobufMessageForBallerinaArrayType(messageBuilder, arrayType, fieldName, number, 1);
             } else if (fieldType.getTag() <= TypeTags.BOOLEAN_TAG) {
                 String protoFieldType = DataTypeMapper.getProtoTypeFromTag(fieldType.getTag());
                 buildProtobufMessageForBallerinaPrimitiveType(messageBuilder, protoFieldType, fieldName, number);
@@ -243,13 +219,7 @@ public class SchemaGenerator {
                     protoType = arrayType.getElementType().getName();
                 }
                 String fieldName = protoType + UNION_FIELD_SEPARATOR + "array_" + name;
-                buildProtobufMessageForBallerinaArrayType(
-                        messageBuilder,
-                        arrayType,
-                        fieldName,
-                        number,
-                        1
-                );
+                buildProtobufMessageForBallerinaArrayType(messageBuilder, arrayType, fieldName, number, 1);
                 number++;
             } else if (memberType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 RecordType recordType = (RecordType) memberType;

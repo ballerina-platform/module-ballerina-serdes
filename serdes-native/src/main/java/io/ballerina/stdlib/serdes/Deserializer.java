@@ -41,7 +41,6 @@ import io.ballerina.runtime.api.values.BTypedesc;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import static io.ballerina.stdlib.serdes.Utils.SERDES_ERROR;
@@ -70,6 +69,8 @@ public class Deserializer {
 
     static final String UNSUPPORTED_DATA_TYPE = "Unsupported data type: ";
     static final String DESERIALIZATION_ERROR_MESSAGE = "Failed to Deserialize data: ";
+    static final String MISSING_ENTRY_IN_DATATYPE = "Missing entry in datatype for ";
+    static final String UNSUPPORTED_UNION_TYPE = "Unsupported union type";
 
     /**
      * Creates an anydata object from a byte array after deserializing.
@@ -109,18 +110,13 @@ public class Deserializer {
         } else if (type.getTag() == TypeTags.UNION_TAG) {
             FieldDescriptor fieldDescriptor = schema.findFieldByName(ATOMIC_FIELD_NAME);
             DynamicMessage dynamicMessageForUnion = (DynamicMessage) dynamicMessage.getField(fieldDescriptor);
-            return getBallerinaUnionTypeValueFromMessage(dynamicMessageForUnion, typedesc.getDescribingType(), schema);
+            return getBallerinaUnionTypeValueFromMessage(dynamicMessageForUnion, type, schema);
         } else if (type.getTag() == TypeTags.ARRAY_TAG) {
             ArrayType arrayType = (ArrayType) type;
             Type elementType = arrayType.getElementType();
             FieldDescriptor fieldDescriptor = schema.findFieldByName(ARRAY_FIELD_NAME);
             schema = fieldDescriptor.getContainingType();
-            return getBallerinaArrayValueFromMessage(
-                    dynamicMessage.getField(fieldDescriptor),
-                    elementType,
-                    schema,
-                    1
-            );
+            return getBallerinaArrayValueFromMessage(dynamicMessage.getField(fieldDescriptor), elementType, schema, 1);
         } else if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
             Map<String, Object> mapObject = getBallerinaRecordValueFromMessage(dynamicMessage, type, schema);
             return ValueCreator.createRecordValue(type.getPackage(), type.getName(), mapObject);
@@ -150,8 +146,7 @@ public class Deserializer {
         } else {
             Collection collection = (Collection) value;
             BArray bArray = ValueCreator.createArrayValue(TypeCreator.createArrayType(type));
-            for (Iterator it = collection.iterator(); it.hasNext(); ) {
-                Object element = it.next();
+            for (Object element : collection) {
                 if (type.getTag() == TypeTags.STRING_TAG) {
                     bArray.append(StringUtils.fromString(element.toString()));
                 } else if (type.getTag() == TypeTags.FLOAT_TAG) {
@@ -171,22 +166,16 @@ public class Deserializer {
                     Descriptor nestedSchema = schema.findNestedTypeByName(fieldName);
                     DynamicMessage nestedDynamicMessage = (DynamicMessage) element;
                     FieldDescriptor fieldDescriptor = nestedSchema.findFieldByName(fieldName);
-                    BArray nestedArray = (BArray) getBallerinaArrayValueFromMessage(
-                            nestedDynamicMessage.getField(fieldDescriptor),
-                            elementType,
-                            nestedSchema,
-                            unionFieldIdentifier
-                    );
+                    Object nestedArrayContent = nestedDynamicMessage.getField(fieldDescriptor);
+                    BArray nestedArray = (BArray) getBallerinaArrayValueFromMessage(nestedArrayContent, elementType,
+                                                                                    nestedSchema, unionFieldIdentifier);
                     bArray.append(nestedArray);
                 } else if (type.getTag() == TypeTags.UNION_TAG) {
                     DynamicMessage dynamicMessageForUnion = (DynamicMessage) element;
                     bArray.append(getBallerinaUnionTypeValueFromMessage(dynamicMessageForUnion, type, schema));
                 } else if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    Map<String, Object> mapObject = getBallerinaRecordValueFromMessage(
-                            (DynamicMessage) element,
-                            type,
-                            schema
-                    );
+                    Map<String, Object> mapObject = getBallerinaRecordValueFromMessage((DynamicMessage) element, type,
+                                                                                       schema);
                     bArray.append(ValueCreator.createRecordValue(type.getPackage(), type.getName(), mapObject));
                 } else {
                     bArray.append(element);
@@ -218,34 +207,20 @@ public class Deserializer {
                             break;
                         }
                     }
-                    map.put(fieldName, getBallerinaUnionTypeValueFromMessage(
-                            nestedDynamicMessage,
-                            unionType,
-                            unionSchema
-                    ));
+                    map.put(fieldName, getBallerinaUnionTypeValueFromMessage(nestedDynamicMessage, unionType,
+                                                                             unionSchema));
                 } else {
-                    Map<String, Object> nestedMap = getBallerinaRecordValueFromMessage(
-                            nestedDynamicMessage,
-                            type,
-                            schema
-                    );
+                    Map<String, Object> nestedMap = getBallerinaRecordValueFromMessage(nestedDynamicMessage, type,
+                                                                                       schema);
                     String recordTypeName = getRecordTypeName(type, fieldName);
-                    BMap<BString, Object> nestedRecord = ValueCreator.createRecordValue(
-                            type.getPackage(),
-                            recordTypeName,
-                            nestedMap
-                    );
+                    BMap<BString, Object> nestedRecord = ValueCreator.createRecordValue(type.getPackage(),
+                                                                                        recordTypeName, nestedMap);
                     map.put(fieldName, nestedRecord);
                 }
             } else if (value.getClass().getSimpleName().equals(BYTE) || entry.getKey().isRepeated()) {
                 if (!value.getClass().getSimpleName().equals(BYTE)) {
                     Type elementType = getArrayElementType(type, fieldName);
-                    Object handleArray = getBallerinaArrayValueFromMessage(
-                            value,
-                            elementType,
-                            schema,
-                            1
-                    );
+                    Object handleArray = getBallerinaArrayValueFromMessage(value, elementType, schema, 1);
                     map.put(fieldName, handleArray);
                 } else {
                     Object handleArray = getBallerinaArrayValueFromMessage(value, type, schema, 1);
@@ -270,11 +245,9 @@ public class Deserializer {
                 return fieldType.getName();
             } else if (fieldType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 return getRecordTypeName(fieldType, fieldName);
-            } else {
-                continue;
             }
         }
-        return null;
+        throw createSerdesError(DESERIALIZATION_ERROR_MESSAGE + MISSING_ENTRY_IN_DATATYPE + fieldName, SERDES_ERROR);
     }
 
     private static Type getArrayElementType(Type type, String fieldName) {
@@ -288,7 +261,7 @@ public class Deserializer {
                 return getArrayElementType(entry.getValue().getFieldType(), fieldName);
             }
         }
-        return null;
+        throw createSerdesError(DESERIALIZATION_ERROR_MESSAGE + MISSING_ENTRY_IN_DATATYPE + fieldName, SERDES_ERROR);
     }
 
     private static Object getBallerinaUnionTypeValueFromMessage(DynamicMessage dynamicMessage, Type type,
@@ -301,11 +274,8 @@ public class Deserializer {
             if (value instanceof DynamicMessage) {
                 DynamicMessage dynamicMessageForUnion = (DynamicMessage) entry.getValue();
                 Type recordType = getCorrespondingElementTypeFromUnion(type, entry.getKey().getName());
-                Map<String, Object> mapObject = getBallerinaRecordValueFromMessage(
-                        dynamicMessageForUnion, 
-                        recordType, 
-                        schema
-                );
+                Map<String, Object> mapObject = getBallerinaRecordValueFromMessage(dynamicMessageForUnion, recordType,
+                                                                                   schema);
                 return ValueCreator.createRecordValue(recordType.getPackage(), recordType.getName(), mapObject);
             } else if (value.getClass().getSimpleName().equals(BYTE) || entry.getKey().isRepeated()) {
                 Type elementType = getCorrespondingElementTypeFromUnion(type, entry.getKey().getName());
@@ -314,7 +284,7 @@ public class Deserializer {
                 return getBallerinaPrimitiveValueFromMessage(entry.getValue());
             }
         }
-        return null;
+        throw createSerdesError(DESERIALIZATION_ERROR_MESSAGE + UNSUPPORTED_UNION_TYPE, SERDES_ERROR);
     }
 
     private static Type getCorrespondingElementTypeFromUnion(Type type, String fieldName) {
@@ -340,6 +310,6 @@ public class Deserializer {
                 }
             }
         }
-        return null;
+        throw createSerdesError(DESERIALIZATION_ERROR_MESSAGE + UNSUPPORTED_UNION_TYPE, SERDES_ERROR);
     }
 }
