@@ -59,5 +59,4 @@ public class DataTypeMapper {
         ballerinaTypeTagToProto.put(TypeTags.STRING_TAG, "string");
         ballerinaTypeTagToProto.put(TypeTags.BOOLEAN_TAG, "bool");
     }
-    
 }
