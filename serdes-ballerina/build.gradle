@@ -253,9 +253,8 @@ ballerinaTest.dependsOn ":${packageName}-native:build"
 ballerinaTest.dependsOn updateTomlFile
 ballerinaTest.dependsOn initializeVariables
 ballerinaTest.finalizedBy revertTomlFile
-test.dependsOn ballerinaTest
 
-ballerinaBuild.dependsOn test
+ballerinaBuild.dependsOn ballerinaTest
 ballerinaBuild.dependsOn ":${packageName}-native:build"
 ballerinaBuild.dependsOn updateTomlFile
 ballerinaBuild.dependsOn initializeVariables

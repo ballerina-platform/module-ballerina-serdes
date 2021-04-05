@@ -120,20 +120,11 @@ public class Serializer {
                                                                          FieldDescriptor field, Object value) {
         String fieldType = DataTypeMapper.getProtoTypeFromJavaType(value.getClass().getSimpleName());
 
-        switch (fieldType) {
-            case STRING:
-                BString bString = (BString) value;
-                messageBuilder.setField(field, bString.getValue());
-                break;
-            case FLOAT:
-                messageBuilder.setField(field, (Float) value);
-                break;
-            case DOUBLE:
-                messageBuilder.setField(field, (Double) value);
-                break;
-            default:
-                messageBuilder.setField(field, value);
-                break;
+        if (STRING.equals(fieldType)) {
+            BString bString = (BString) value;
+            messageBuilder.setField(field, bString.getValue());
+        } else {
+            messageBuilder.setField(field, value);
         }
     }
 
@@ -168,10 +159,6 @@ public class Serializer {
             } else {
                 if (fieldType.equals(STRING)) {
                     messageBuilder.addRepeatedField(field, element.toString());
-                } else if (type.getTag() == TypeTags.FLOAT_TAG) {
-                    messageBuilder.addRepeatedField(field, Double.valueOf(element.toString()));
-                } else if (type.getTag() == TypeTags.DECIMAL_TAG) {
-                    messageBuilder.addRepeatedField(field, Double.valueOf(element.toString()));
                 } else if (type.getTag() == TypeTags.ARRAY_TAG) {
                     BArray nestedArray = (BArray) element;
                     String nestedTypeName;

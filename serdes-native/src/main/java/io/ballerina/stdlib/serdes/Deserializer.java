@@ -126,16 +126,10 @@ public class Deserializer {
     }
 
     private static Object getBallerinaPrimitiveValueFromMessage(Object value) {
-        String valueInString = value.toString();
-
-        switch (value.getClass().getSimpleName()) {
-            case STRING:
-                return StringUtils.fromString(valueInString);
-            case DOUBLE:
-                return ValueCreator.createDecimalValue(valueInString);
-            default:
-                return value;
+        if (STRING.equals(value.getClass().getSimpleName())) {
+            return StringUtils.fromString((String) value);
         }
+        return value;
     }
 
     private static Object getBallerinaArrayValueFromMessage(Object value, Type type, Descriptor schema,
@@ -148,9 +142,7 @@ public class Deserializer {
             BArray bArray = ValueCreator.createArrayValue(TypeCreator.createArrayType(type));
             for (Object element : collection) {
                 if (type.getTag() == TypeTags.STRING_TAG) {
-                    bArray.append(StringUtils.fromString(element.toString()));
-                } else if (type.getTag() == TypeTags.FLOAT_TAG) {
-                    bArray.append(Double.valueOf(element.toString()));
+                    bArray.append(StringUtils.fromString((String) element));
                 } else if (type.getTag() == TypeTags.ARRAY_TAG) {
                     ArrayType arrayType = (ArrayType) type;
                     Type elementType = arrayType.getElementType();
