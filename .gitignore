@@ -35,3 +35,6 @@ hs_err_pid*
 .gradle
 target
 build
+
+# Unused toml files
+Dependencies.toml

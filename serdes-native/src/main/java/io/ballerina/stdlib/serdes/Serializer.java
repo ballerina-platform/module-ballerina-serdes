@@ -238,6 +238,7 @@ public class Serializer {
             newMessageFromSchema.setField(field, true);
             return newMessageFromSchema.build();
         }
+        // TODO: Find a better approach instead of using the class name
         String dataType = value.getClass().getSimpleName();
         String ballerinaToProtoMap = DataTypeMapper.getProtoTypeFromJavaType(dataType);
         if (ballerinaToProtoMap != null) {
