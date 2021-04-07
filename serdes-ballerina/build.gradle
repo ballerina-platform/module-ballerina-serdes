@@ -253,6 +253,7 @@ ballerinaTest.dependsOn ":${packageName}-native:build"
 ballerinaTest.dependsOn updateTomlFile
 ballerinaTest.dependsOn initializeVariables
 ballerinaTest.finalizedBy revertTomlFile
+test.dependsOn ballerinaTest
 
 ballerinaBuild.dependsOn ballerinaTest
 ballerinaBuild.dependsOn ":${packageName}-native:build"
@@ -260,6 +261,7 @@ ballerinaBuild.dependsOn updateTomlFile
 ballerinaBuild.dependsOn initializeVariables
 ballerinaBuild.finalizedBy revertTomlFile
 build.dependsOn ballerinaBuild
+build.dependsOn test
 
 ballerinaPublish.dependsOn ":${packageName}-native:build"
 ballerinaPublish.dependsOn ballerinaBuild
