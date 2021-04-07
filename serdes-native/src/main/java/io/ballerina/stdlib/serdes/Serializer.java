@@ -155,7 +155,8 @@ public class Serializer {
                 messageBuilder.addRepeatedField(field, elementDynamicMessage);
             } else {
                 if (fieldType.equals(STRING)) {
-                    messageBuilder.addRepeatedField(field, element.toString());
+                    BString bString = (BString) element;
+                    messageBuilder.addRepeatedField(field, bString.getValue());
                 } else if (type.getTag() == TypeTags.ARRAY_TAG) {
                     BArray nestedArray = (BArray) element;
                     String nestedTypeName;
@@ -193,7 +194,7 @@ public class Serializer {
         Descriptor messageDescriptor = newMessageFromSchema.getDescriptorForType();
 
         for (Map.Entry<BString, Object> entry : bMap.entrySet()) {
-            String fieldName = entry.getKey().toString();
+            String fieldName = entry.getKey().getValue();
             Object value = entry.getValue();
             String unionType = fieldName + "_" + UNION_TYPE_IDENTIFIER;
             Descriptor unionDescriptor = messageDescriptor.findNestedTypeByName(unionType);
@@ -209,7 +210,7 @@ public class Serializer {
                     BMap<BString, Object> objToBMap = (BMap<BString, Object>) value;
                     String nestedTypeName = objToBMap.getType().getName();
                     Descriptor subMessageDescriptor = schema.findNestedTypeByName(nestedTypeName);
-                    nestedTypeName = entry.getKey().toString();
+                    nestedTypeName = entry.getKey().getValue();
                     DynamicMessage nestedMessage = generateDynamicMessageForBallerinaRecord(objToBMap,
                                                                                             subMessageDescriptor);
                     newMessageFromSchema.setField(messageDescriptor.findFieldByName(nestedTypeName), nestedMessage);
