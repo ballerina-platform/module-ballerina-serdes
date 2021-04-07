@@ -53,9 +53,6 @@ public class Deserializer {
 
     static final String BYTE = "LiteralByteString";
     static final String STRING = "String";
-    static final String FLOAT = "Float";
-    static final String DOUBLE = "Double";
-    static final String DYNAMIC_MESSAGE = "DynamicMessage";
 
     static final String ATOMIC_FIELD_NAME = "atomicField";
     static final String ARRAY_FIELD_NAME = "arrayfield";
@@ -126,7 +123,7 @@ public class Deserializer {
     }
 
     private static Object getBallerinaPrimitiveValueFromMessage(Object value) {
-        if (STRING.equals(value.getClass().getSimpleName())) {
+        if (value instanceof String) {
             return StringUtils.fromString((String) value);
         }
         return value;
@@ -134,7 +131,7 @@ public class Deserializer {
 
     private static Object getBallerinaArrayValueFromMessage(Object value, Type type, Descriptor schema,
                                                             int unionFieldIdentifier) {
-        if (value.getClass().getSimpleName().equals(BYTE)) {
+        if (value instanceof ByteString) {
             ByteString byteString = (ByteString) value;
             return ValueCreator.createArrayValue(byteString.toByteArray());
         } else {
@@ -209,8 +206,8 @@ public class Deserializer {
                                                                                         recordTypeName, nestedMap);
                     map.put(fieldName, nestedRecord);
                 }
-            } else if (value.getClass().getSimpleName().equals(BYTE) || entry.getKey().isRepeated()) {
-                if (!value.getClass().getSimpleName().equals(BYTE)) {
+            } else if (value instanceof ByteString || entry.getKey().isRepeated()) {
+                if (!(value instanceof ByteString)) {
                     Type elementType = getArrayElementType(type, fieldName);
                     Object handleArray = getBallerinaArrayValueFromMessage(value, elementType, schema, 1);
                     map.put(fieldName, handleArray);
@@ -269,7 +266,7 @@ public class Deserializer {
                 Map<String, Object> mapObject = getBallerinaRecordValueFromMessage(dynamicMessageForUnion, recordType,
                                                                                    schema);
                 return ValueCreator.createRecordValue(recordType.getPackage(), recordType.getName(), mapObject);
-            } else if (value.getClass().getSimpleName().equals(BYTE) || entry.getKey().isRepeated()) {
+            } else if (value instanceof ByteString || entry.getKey().isRepeated()) {
                 Type elementType = getCorrespondingElementTypeFromUnion(type, entry.getKey().getName());
                 return getBallerinaArrayValueFromMessage(value, elementType, schema, 1);
             } else {
