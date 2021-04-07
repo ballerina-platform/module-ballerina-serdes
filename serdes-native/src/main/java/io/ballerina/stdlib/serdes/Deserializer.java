@@ -51,9 +51,6 @@ import static io.ballerina.stdlib.serdes.Utils.createSerdesError;
  */
 public class Deserializer {
 
-    static final String BYTE = "LiteralByteString";
-    static final String STRING = "String";
-
     static final String ATOMIC_FIELD_NAME = "atomicField";
     static final String ARRAY_FIELD_NAME = "arrayfield";
     static final String NULL_FIELD_NAME = "nullField";

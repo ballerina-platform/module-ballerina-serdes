@@ -54,9 +54,6 @@ public class Serializer {
     static final String UNION_FIELD_SEPARATOR = "__";
 
     static final String STRING = "string";
-    static final String FLOAT = "float";
-    static final String DOUBLE = "double";
-    static final String ARRAY = "ArrayValueImpl";
     static final String RECORD = "record";
     static final String MESSAGE = "message";
 
@@ -249,7 +246,7 @@ public class Serializer {
             generateDynamicMessageForBallerinaPrimitiveValue(newMessageFromSchema, field, value);
             return newMessageFromSchema.build();
         }
-        if (dataType.equals(ARRAY)) {
+        if (value instanceof BArray) {
             BArray bArray = (BArray) value;
             String elementType = DataTypeMapper.getProtoTypeFromTag(bArray.getElementType().getTag());
             if (elementType == null) {
