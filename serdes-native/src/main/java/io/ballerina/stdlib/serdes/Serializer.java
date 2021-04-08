@@ -54,7 +54,7 @@ public class Serializer {
     static final String UNION_FIELD_SEPARATOR = "__";
 
     static final String STRING = "string";
-    static final String RECORD = "record";
+    static final String RECORD = "_record";
     static final String MESSAGE = "message";
 
     static final String UNSUPPORTED_DATA_TYPE = "Unsupported data type: ";
