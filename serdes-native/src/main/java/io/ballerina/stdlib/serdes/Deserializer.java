@@ -38,6 +38,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
 
 import java.util.Collection;
 import java.util.HashMap;

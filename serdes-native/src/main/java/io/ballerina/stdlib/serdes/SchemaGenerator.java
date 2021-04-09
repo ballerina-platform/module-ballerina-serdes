@@ -28,6 +28,10 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
+import io.ballerina.stdlib.serdes.protobuf.ProtobufMessage;
+import io.ballerina.stdlib.serdes.protobuf.ProtobufMessageBuilder;
+import io.ballerina.stdlib.serdes.protobuf.ProtobufSchemaBuilder;
 
 import java.util.Map;
 

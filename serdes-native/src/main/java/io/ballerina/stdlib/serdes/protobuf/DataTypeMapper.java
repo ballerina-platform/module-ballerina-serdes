@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.serdes;
+package io.ballerina.stdlib.serdes.protobuf;
 
 import io.ballerina.runtime.api.TypeTags;
 
