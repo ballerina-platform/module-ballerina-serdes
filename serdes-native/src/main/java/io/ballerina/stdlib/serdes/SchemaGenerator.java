@@ -28,6 +28,10 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
+import io.ballerina.stdlib.serdes.protobuf.ProtobufMessage;
+import io.ballerina.stdlib.serdes.protobuf.ProtobufMessageBuilder;
+import io.ballerina.stdlib.serdes.protobuf.ProtobufSchemaBuilder;
 
 import java.util.Map;
 
@@ -56,6 +60,7 @@ public class SchemaGenerator {
     static final String UNION_FIELD_SEPARATOR = "__";
 
     static final String BYTES = "bytes";
+    static final String RECORD = "_record";
 
     static final String UNSUPPORTED_DATA_TYPE = "Unsupported data type: ";
     static final String SCHEMA_GENERATION_FAILURE = "Failed to generate schema: ";
@@ -152,10 +157,9 @@ public class SchemaGenerator {
             messageBuilder.addField(REPEATED_LABEL, nestedMessageName, name, number);
         } else if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
             RecordType recordType = (RecordType) type;
-            String[] elementNameHolder = type.getName().split(":");
-            String elementType = elementNameHolder[elementNameHolder.length - 1];
+            String elementType = recordType.getName();
             messageBuilder.addNestedMessage(
-                    buildProtobufMessageForBallerinaRecordType(recordType.getFields(), recordType.getName())
+                    buildProtobufMessageForBallerinaRecordType(recordType.getFields(), elementType)
             );
             messageBuilder.addField(REPEATED_LABEL, elementType, name, number);
         } else {
@@ -225,9 +229,9 @@ public class SchemaGenerator {
                 RecordType recordType = (RecordType) memberType;
                 String fieldName = memberType.getName() + UNION_FIELD_SEPARATOR + name;
                 String[] elementNameHolder = recordType.getName().split(":");
-                String elementType = elementNameHolder[elementNameHolder.length - 1] + "record";
+                String elementType = elementNameHolder[elementNameHolder.length - 1] + RECORD;
                 messageBuilder.addNestedMessage(buildProtobufMessageForBallerinaRecordType(recordType.getFields(),
-                        recordType.getName() + "record"));
+                        recordType.getName() + RECORD));
                 messageBuilder.addField(OPTIONAL_LABEL, elementType, fieldName, number);
                 number++;
             } else {
