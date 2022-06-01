@@ -4,7 +4,7 @@ name = "serdes"
 version = "@toml.version@"
 
 [[platform.java11.dependency]]
-path = "../serdes-native/build/libs/serdes-native-@project.version@.jar"
+path = "../native/build/libs/serdes-native-@project.version@.jar"
 groupId = "io.ballerina.stdlib.serdes"
 artifactId = "serdes"
 version = "@project.version@"
