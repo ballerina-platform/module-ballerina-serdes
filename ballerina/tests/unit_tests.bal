@@ -282,8 +282,6 @@ type Member record {
 
 @test:Config{}
 public isolated function testRecordWithNil() returns error? {
-    // Contact phone1 = {mobile: "+123456", home: "789"};
-    // Member member1 = {name: "foo", salary: 1.23, contact: phone1};
     Member member2 = {name: "bar", salary:()};
 
     Proto3SerDes ser = check new(Member);
@@ -374,7 +372,6 @@ type RecordWithUnionFields record {
 
 @test:Config{}
 public isolated function testRecordWithUnionFields() returns error? {
-    // UnionMember member = { name: "Jane Doe", id:100 };
     RecordWithUnionFields rec = { name: "Jane", membership: () };
 
     Proto3SerDes ser = check new(RecordWithUnionFields);
@@ -425,10 +422,7 @@ type TestMember record {
 
 @test:Config{}
 public isolated function testComplexTypeWithUnion() returns error? {
-    // int[] nums = [1, 2, 3];
     TestMember[] member1 = [{full_name: "foo bar", id: 100}];
-    // UnionType[] uArray = [1, 2, ["Jane", "Doe"], member1];
-    // TestMember member = {full_name: "John Doe", id: 101};
     RecordWithUnion membership = {member_id: 619};
     MyRecord randomRecord = {name: "John", test_type: member1, member: membership};
 
