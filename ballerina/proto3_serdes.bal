@@ -41,9 +41,11 @@ public class Proto3SerDes {
     #
     # + encodedMessage - The encoded byte array of the value that is serialized
     # + return - The value represented by the encoded byte array
-    public isolated function deserialize(byte[] encodedMessage) returns anydata|Error {
-        return deserialize(self, encodedMessage, self.dataType);
-    }
+    public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error =
+    @java:Method {
+    'class: "io.ballerina.stdlib.serdes.Deserializer"
+    }  external;
+
 }
 
 public isolated function generateSchema(SerDes serdes, typedesc<anydata> T) returns Error? =
@@ -53,9 +55,4 @@ public isolated function generateSchema(SerDes serdes, typedesc<anydata> T) retu
 
 public isolated function serialize(SerDes ser, anydata data, typedesc<anydata> T) returns byte[]|Error = @java:Method {
     'class: "io.ballerina.stdlib.serdes.Serializer"
-}  external;
-
-public isolated function deserialize(SerDes des, byte[] encodedMessage, typedesc<anydata> T) returns anydata|Error =
-@java:Method {
-    'class: "io.ballerina.stdlib.serdes.Deserializer"
 }  external;

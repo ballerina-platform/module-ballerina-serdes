@@ -77,7 +77,7 @@ public isolated function testPrimitiveFloat() returns error? {
     byte[] encoded = check ser.serialize(6.666);
 
     Proto3SerDes des = check new(float);
-    float decoded = <float>check des.deserialize(encoded);
+    float decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, 6.666);
 }
 
@@ -87,7 +87,7 @@ public isolated function testPrimitiveDecimal() returns error? {
     byte[] encoded = check ser.serialize(1.23);
 
     Proto3SerDes des = check new(decimal);
-    float decoded = <float>check des.deserialize(encoded);
+    float decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, 1.23);
 }
 
@@ -97,7 +97,7 @@ public isolated function testPrimitiveBoolean() returns error? {
     byte[] encoded = check ser.serialize(true);
 
     Proto3SerDes des = check new(boolean);
-    boolean decoded = <boolean>check des.deserialize(encoded);
+    boolean decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, true);
 }
 
@@ -107,7 +107,7 @@ public isolated function testPrimitiveString() returns error? {
     byte[] encoded = check ser.serialize("module-ballerina-serdes");
 
     Proto3SerDes des = check new(string);
-    string decoded = <string>check des.deserialize(encoded);
+    string decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, "module-ballerina-serdes");
 }
 
@@ -117,7 +117,7 @@ public isolated function testPrimitiveInt() returns error? {
     byte[] encoded = check ser.serialize(666);
 
     Proto3SerDes des = check new(int);
-    int decoded = <int>check des.deserialize(encoded);
+    int decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, 666);
 }
 
@@ -127,7 +127,7 @@ public isolated function testStringArray() returns error? {
     byte[] encoded = check ser.serialize(["Jane", "Doe"]);
 
     Proto3SerDes des = check new(StringArray);
-    StringArray decoded = <StringArray>check des.deserialize(encoded);
+    StringArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, ["Jane", "Doe"]);
 }
 
@@ -137,7 +137,7 @@ public isolated function testIntArray() returns error? {
     byte[] encoded = check ser.serialize([1, 2, 3]);
 
     Proto3SerDes des = check new(IntArray);
-    IntArray decoded = <IntArray>check des.deserialize(encoded);
+    IntArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, [1, 2, 3]);
 }
 
@@ -147,7 +147,7 @@ public isolated function testByteArray() returns error? {
     byte[] encoded = check ser.serialize(base16 `aeeecdefabcd12345567888822`);
 
     Proto3SerDes des = check new(ByteArray);
-    ByteArray decoded = <ByteArray>check des.deserialize(encoded);
+    ByteArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, [174,238,205,239,171,205,18,52,85,103,136,136,34]);
 }
 
@@ -157,7 +157,7 @@ public isolated function testFloatArray() returns error? {
     byte[] encoded = check ser.serialize([0.123, 4.968, 3.256]);
 
     Proto3SerDes des = check new(FloatArray);
-    FloatArray decoded = <FloatArray>check des.deserialize(encoded);
+    FloatArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, [0.123, 4.968, 3.256]);
 }
 
@@ -167,7 +167,7 @@ public isolated function testDecimalArray() returns error? {
     byte[] encoded = check ser.serialize([0.123, 4.968, 3.256]);
 
     Proto3SerDes des = check new(DecimalArray);
-    FloatArray decoded = <FloatArray>check des.deserialize(encoded);
+    FloatArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, [0.123, 4.968, 3.256]);
 }
 
@@ -177,7 +177,7 @@ public isolated function testBooleanArray() returns error? {
     byte[] encoded = check ser.serialize([true, false, true, false]);
 
     Proto3SerDes des = check new(BoolArray);
-    BoolArray decoded = <BoolArray>check des.deserialize(encoded);
+    BoolArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, [true, false, true, false]);
 }
 
@@ -194,7 +194,7 @@ public isolated function testNestedArray() returns error? {
     byte[] encoded = check ser.serialize(I);
 
     Proto3SerDes des = check new(OuterArray);
-    OuterArray decoded = <OuterArray>check des.deserialize(encoded);
+    OuterArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, I);
 }
 
@@ -206,7 +206,7 @@ public isolated function testRecordWithPrimitives() returns error? {
     byte[] encoded = check ser.serialize(primitiveRecord);
 
     Proto3SerDes des = check new(Primitive);
-    Primitive decoded = <Primitive>check des.deserialize(encoded);
+    Primitive decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, primitiveRecord);
 }
 
@@ -224,7 +224,7 @@ public isolated function testRecordWithArrays() returns error? {
     byte[] encoded = check ser.serialize(arrayRecord);
 
     Proto3SerDes des = check new(Arrays);
-    Arrays decoded = <Arrays>check des.deserialize(encoded);
+    Arrays decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, arrayRecord);
 }
 
@@ -238,7 +238,7 @@ public isolated function testNestedRecord() returns error? {
     byte[] encoded = check ser.serialize(president);
 
     Proto3SerDes des = check new(Person);
-    Person decoded = <Person>check des.deserialize(encoded);
+    Person decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, president);
 }
 
@@ -252,7 +252,7 @@ public isolated function testArrayOfRecords() returns error? {
     byte[] encoded = check ser.serialize(contacts);
 
     Proto3SerDes des = check new(RecordArray);
-    RecordArray|error decoded = (check des.deserialize(encoded)).cloneWithType(RecordArray);
+    RecordArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, contacts);
 }
 
@@ -270,7 +270,7 @@ public isolated function testComplexRecord() returns error? {
     byte[] encoded = check ser.serialize(john);
 
     Proto3SerDes des = check new(Student);
-    Student decoded = <Student>check des.deserialize(encoded);
+    Student decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, john);
 }
 
@@ -290,7 +290,7 @@ public isolated function testRecordWithNil() returns error? {
     byte[] encoded = check ser.serialize(member2);
 
     Proto3SerDes des = check new(Member);
-    Member decoded = <Member>check des.deserialize(encoded);
+    Member decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, member2);
 }
 
@@ -302,7 +302,7 @@ public isolated function testFieldWithNil() returns error? {
     byte[] encoded = check ser.serialize(());
 
     Proto3SerDes des = check new(DecimalOrNil);
-    DecimalOrNil decoded = <DecimalOrNil>check des.deserialize(encoded);
+    DecimalOrNil decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, ());
 }
 
@@ -314,7 +314,7 @@ public isolated function testUnionField() returns error? {
     byte[] encoded = check ser.serialize(128);
 
     Proto3SerDes des = check new(Union);
-    Union decoded = <Union>check des.deserialize(encoded);
+    Union decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, 128);
 }
 
@@ -328,7 +328,7 @@ public isolated function testUnionWithArrays() returns error? {
     byte[] encoded = check ser.serialize(nums);
 
     Proto3SerDes des = check new(UnionWithArrays);
-    UnionWithArrays decoded = <UnionWithArrays>check des.deserialize(encoded);
+    UnionWithArrays decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, nums);
 }
 
@@ -347,7 +347,7 @@ public isolated function testUnionWithRecord() returns error? {
     byte[] encoded = check ser.serialize(member);
 
     Proto3SerDes des = check new(UnionWithRecord);
-    UnionWithRecord decoded = <UnionWithRecord>check des.deserialize(encoded);
+    UnionWithRecord decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, member);
 }
 
@@ -363,7 +363,7 @@ public isolated function testArrayOfUnionElements() returns error? {
     byte[] encoded = check ser.serialize(array);
 
     Proto3SerDes des = check new(UnionArray);
-    UnionArray decoded = <UnionArray>check des.deserialize(encoded);
+    UnionArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, array);
 }
 
@@ -381,7 +381,7 @@ public isolated function testRecordWithUnionFields() returns error? {
     byte[] encoded = check ser.serialize(rec);
 
     Proto3SerDes des = check new(RecordWithUnionFields);
-    RecordWithUnionFields decoded = <RecordWithUnionFields>check des.deserialize(encoded);
+    RecordWithUnionFields decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, rec);
 }
 
@@ -402,7 +402,7 @@ public isolated function testNestedArrayWithUnionFields() returns error? {
     byte[] encoded = check ser.serialize(level2Array);
 
     Proto3SerDes des = check new(Level1Array);
-    Level1Array decoded = <Level1Array>check des.deserialize(encoded);
+    Level1Array decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, level2Array);
 }
 
@@ -436,7 +436,7 @@ public isolated function testComplexTypeWithUnion() returns error? {
     byte[] encoded = check ser.serialize(randomRecord);
 
     Proto3SerDes des = check new(MyRecord);
-    MyRecord decoded = <MyRecord>check des.deserialize(encoded);
+    MyRecord decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, randomRecord);
 }
 
@@ -448,7 +448,7 @@ public isolated function testUnionTypeWithNull() returns error? {
     byte[] encoded = check ser.serialize(nullType);
 
     Proto3SerDes des = check new(IntStringOrNull);
-    IntStringOrNull decoded = <IntStringOrNull>check des.deserialize(encoded);
+    IntStringOrNull decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, nullType);
 }
 
@@ -476,7 +476,7 @@ public isolated function testUseCase1() returns error? {
     byte[] encoded = check ser.serialize(employer);
 
     Proto3SerDes des = check new(Individual);
-    Individual decoded = <Individual>check des.deserialize(encoded);
+    Individual decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, employer);
 }
 
@@ -497,6 +497,6 @@ public isolated function simpleTest() returns error? {
     byte[] encoded = check ser.serialize(p);
 
     Proto3SerDes des = check new(President);
-    President decoded = <President>check des.deserialize(encoded);
+    President decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, p);
 }

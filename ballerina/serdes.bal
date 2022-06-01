@@ -18,5 +18,5 @@
 public type SerDes object {
 
     public isolated function serialize(anydata data) returns byte[]|Error;
-    public isolated function deserialize(byte[] encodedMessage) returns anydata|Error;
+    public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error;
 };
