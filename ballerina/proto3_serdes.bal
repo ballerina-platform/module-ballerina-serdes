@@ -16,8 +16,8 @@
 
 import ballerina/jballerina.java;
 
-public class Proto3SerDes {
-    *SerDes;
+public class Proto3Schema {
+    *Schema;
     private typedesc<anydata> dataType;
 
     # Generates a schema for a given data type.
@@ -48,11 +48,11 @@ public class Proto3SerDes {
 
 }
 
-public isolated function generateSchema(SerDes serdes, typedesc<anydata> T) returns Error? =
+public isolated function generateSchema(Schema serdes, typedesc<anydata> T) returns Error? =
 @java:Method {
     'class: "io.ballerina.stdlib.serdes.SchemaGenerator"
 }  external;
 
-public isolated function serialize(SerDes ser, anydata data, typedesc<anydata> T) returns byte[]|Error = @java:Method {
+public isolated function serialize(Schema ser, anydata data, typedesc<anydata> T) returns byte[]|Error = @java:Method {
     'class: "io.ballerina.stdlib.serdes.Serializer"
 }  external;

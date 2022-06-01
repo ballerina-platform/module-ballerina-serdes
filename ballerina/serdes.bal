@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# A SerDes object that can be used to create custom serializers/deserializers.
-public type SerDes object {
+# A Schema object that can be used to create custom serializers/deserializers.
+public type Schema object {
 
     public isolated function serialize(anydata data) returns byte[]|Error;
     public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error;
