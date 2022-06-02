@@ -41,7 +41,7 @@ public class DataTypeMapper {
         javaTypeToProto = new HashMap<>();
         javaTypeToProto.put("Double", "double");
         javaTypeToProto.put("Float", "double");
-        javaTypeToProto.put("DecimalValue", "double");
+        javaTypeToProto.put("DecimalValue", "string");
         javaTypeToProto.put("Integer", "sint64");
         javaTypeToProto.put("Long", "sint64");
         javaTypeToProto.put("Boolean", "bool");
@@ -55,7 +55,7 @@ public class DataTypeMapper {
         ballerinaTypeTagToProto.put(TypeTags.INT_TAG, "sint64");
         ballerinaTypeTagToProto.put(TypeTags.BYTE_TAG, "bytes");
         ballerinaTypeTagToProto.put(TypeTags.FLOAT_TAG, "double");
-        ballerinaTypeTagToProto.put(TypeTags.DECIMAL_TAG, "double");
+        ballerinaTypeTagToProto.put(TypeTags.DECIMAL_TAG, "string");
         ballerinaTypeTagToProto.put(TypeTags.STRING_TAG, "string");
         ballerinaTypeTagToProto.put(TypeTags.BOOLEAN_TAG, "bool");
     }

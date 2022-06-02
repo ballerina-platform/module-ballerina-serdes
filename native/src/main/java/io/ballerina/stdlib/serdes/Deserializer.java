@@ -38,6 +38,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.runtime.api.values.BValue;
 import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
 
 import java.util.Collection;
@@ -101,7 +102,7 @@ public class Deserializer {
 
         if (type.getTag() <= TypeTags.BOOLEAN_TAG) {
             FieldDescriptor fieldDescriptor = schema.findFieldByName(ATOMIC_FIELD_NAME);
-            return getBallerinaPrimitiveValueFromMessage(dynamicMessage.getField(fieldDescriptor));
+            return getBallerinaPrimitiveValueFromMessage(dynamicMessage.getField(fieldDescriptor), type.getTag());
         } else if (type.getTag() == TypeTags.UNION_TAG) {
             FieldDescriptor fieldDescriptor = schema.findFieldByName(ATOMIC_FIELD_NAME);
             DynamicMessage dynamicMessageForUnion = (DynamicMessage) dynamicMessage.getField(fieldDescriptor);
@@ -121,6 +122,14 @@ public class Deserializer {
     }
 
     private static Object getBallerinaPrimitiveValueFromMessage(Object value) {
+        return getBallerinaPrimitiveValueFromMessage(value, 0);
+    }
+
+    private static Object getBallerinaPrimitiveValueFromMessage(Object value, int typeTag) {
+        if (typeTag == TypeTags.DECIMAL_TAG) {
+            return ValueCreator.createDecimalValue(value.toString());
+        }
+
         if (value instanceof String) {
             return StringUtils.fromString((String) value);
         }
@@ -136,7 +145,9 @@ public class Deserializer {
             Collection collection = (Collection) value;
             BArray bArray = ValueCreator.createArrayValue(TypeCreator.createArrayType(type));
             for (Object element : collection) {
-                if (type.getTag() == TypeTags.STRING_TAG) {
+                if (type.getTag() == TypeTags.DECIMAL_TAG) {
+                    bArray.append(ValueCreator.createDecimalValue(element.toString()));
+                } else if (type.getTag() == TypeTags.STRING_TAG) {
                     bArray.append(StringUtils.fromString((String) element));
                 } else if (type.getTag() == TypeTags.ARRAY_TAG) {
                     ArrayType arrayType = (ArrayType) type;
@@ -175,6 +186,7 @@ public class Deserializer {
     private static Map<String, Object> getBallerinaRecordValueFromMessage(DynamicMessage dynamicMessage, Type type,
                                                                           Descriptor schema) {
         Map<String, Object> map = new HashMap();
+        BMap<BString, Object> typedescs = type.getEmptyValue();
 
         for (Map.Entry<FieldDescriptor, Object> entry : dynamicMessage.getAllFields().entrySet()) {
             String fieldName = entry.getKey().getName();
@@ -214,7 +226,14 @@ public class Deserializer {
                     map.put(fieldName, handleArray);
                 }
             } else if (DataTypeMapper.getProtoTypeFromJavaType(value.getClass().getSimpleName()) != null) {
-                Object handlePrimitive = getBallerinaPrimitiveValueFromMessage(value);
+                Object key = StringUtils.fromString(fieldName);
+                Object handlePrimitive;
+                try {
+                    int typeTag = ((BValue) typedescs.get(key)).getType().getTag();
+                    handlePrimitive = getBallerinaPrimitiveValueFromMessage(value, typeTag);
+                } catch (ClassCastException | NullPointerException e) {
+                    handlePrimitive = getBallerinaPrimitiveValueFromMessage(value);
+                }
                 map.put(fieldName, handlePrimitive);
             } else {
                 throw createSerdesError(UNSUPPORTED_DATA_TYPE + value.getClass().getSimpleName(), SERDES_ERROR);

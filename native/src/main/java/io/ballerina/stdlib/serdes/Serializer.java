@@ -31,6 +31,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.runtime.api.values.BValue;
 import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
 
 import java.util.Locale;
@@ -94,7 +95,7 @@ public class Serializer {
             DynamicMessage.Builder newMessageFromSchema = DynamicMessage.newBuilder(schema);
             Descriptor messageDescriptor = newMessageFromSchema.getDescriptorForType();
             FieldDescriptor field = messageDescriptor.findFieldByName(ATOMIC_FIELD_NAME);
-            generateDynamicMessageForBallerinaPrimitiveValue(newMessageFromSchema, field, dataObject);
+            generateDynamicMessageForBallerinaPrimitiveValue(newMessageFromSchema, field, dataObject, type.getTag());
             return  newMessageFromSchema.build();
         } else if (type.getTag() == TypeTags.UNION_TAG) {
             DynamicMessage.Builder newMessageFromSchema = DynamicMessage.newBuilder(schema);
@@ -120,9 +121,17 @@ public class Serializer {
 
     private static void generateDynamicMessageForBallerinaPrimitiveValue(DynamicMessage.Builder messageBuilder,
                                                                          FieldDescriptor field, Object value) {
+        generateDynamicMessageForBallerinaPrimitiveValue(messageBuilder, field, value, 0);
+    }
+
+    private static void generateDynamicMessageForBallerinaPrimitiveValue(DynamicMessage.Builder messageBuilder,
+                                                                         FieldDescriptor field, Object value,
+                                                                         int typeTag) {
         String fieldType = DataTypeMapper.getProtoTypeFromJavaType(value.getClass().getSimpleName());
 
-        if (STRING.equals(fieldType)) {
+        if (typeTag == TypeTags.DECIMAL_TAG) {
+            messageBuilder.setField(field,  value.toString());
+        } else if (STRING.equals(fieldType)) {
             BString bString = (BString) value;
             messageBuilder.setField(field, bString.getValue());
         } else {
@@ -159,7 +168,9 @@ public class Serializer {
                         , fieldName);
                 messageBuilder.addRepeatedField(field, elementDynamicMessage);
             } else {
-                if (fieldType.equals(STRING)) {
+                if (type.getTag() == TypeTags.DECIMAL_TAG && fieldType.equals(STRING)) {
+                    messageBuilder.addRepeatedField(field, element.toString());
+                } else if (fieldType.equals(STRING)) {
                     BString bString = (BString) element;
                     messageBuilder.addRepeatedField(field, bString.getValue());
                 } else if (type.getTag() == TypeTags.ARRAY_TAG) {
@@ -224,7 +235,12 @@ public class Serializer {
                     generateDynamicMessageForBallerinaArray(newMessageFromSchema, schema, field, value, 1);
                 } else if (DataTypeMapper.getProtoTypeFromJavaType(value.getClass().getSimpleName()) != null) {
                     FieldDescriptor field = messageDescriptor.findFieldByName(fieldName);
-                    generateDynamicMessageForBallerinaPrimitiveValue(newMessageFromSchema, field, value);
+                    try {
+                        int typeTag = ((BValue) value).getType().getTag();
+                        generateDynamicMessageForBallerinaPrimitiveValue(newMessageFromSchema, field, value, typeTag);
+                    } catch (ClassCastException e) {
+                        generateDynamicMessageForBallerinaPrimitiveValue(newMessageFromSchema, field, value);
+                    }
                 } else {
                     String dataType = value.getClass().getSimpleName();
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + dataType, SERDES_ERROR);

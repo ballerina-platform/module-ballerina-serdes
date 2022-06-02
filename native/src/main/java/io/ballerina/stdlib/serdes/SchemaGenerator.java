@@ -94,10 +94,10 @@ public class SchemaGenerator {
 
     private static ProtobufMessage buildProtobufMessageFromBallerinaTypedesc(BTypedesc typedesc) {
         Type type = typedesc.getDescribingType();
-
         if (type.getTag() <= TypeTags.BOOLEAN_TAG) {
             String ballerinaToProtoMap = DataTypeMapper.getProtoTypeFromTag(type.getTag());
-            ProtobufMessageBuilder messageBuilder = ProtobufMessage.newMessageBuilder(ballerinaToProtoMap);
+            String messageName = type.getTag() == TypeTags.DECIMAL_TAG ? type.getName() : ballerinaToProtoMap;
+            ProtobufMessageBuilder messageBuilder = ProtobufMessage.newMessageBuilder(messageName);
             buildProtobufMessageForBallerinaPrimitiveType(messageBuilder, ballerinaToProtoMap, ATOMIC_FIELD_NAME, 1);
             return messageBuilder.build();
         } else if (type.getTag() == TypeTags.UNION_TAG) {
