@@ -16,8 +16,8 @@
 
 import ballerina/jballerina.java;
 
-public class Proto3SerDes {
-    *SerDes;
+public class Proto3Schema {
+    *Schema;
     private typedesc<anydata> dataType;
 
     # Generates a schema for a given data type.
@@ -33,29 +33,25 @@ public class Proto3SerDes {
     #
     # + data - The value that is being serialized
     # + return - A byte array corresponding to the encoded value
-    public isolated function serialize(anydata data) returns byte[]|Error {
-        return serialize(self, data, self.dataType);
-    }
+    public isolated function serialize(anydata data) returns byte[]|Error = 
+    @java:Method {
+        'class: "io.ballerina.stdlib.serdes.Serializer"
+    }  external;
+
 
     # Deserializes a given array of bytes.
     #
     # + encodedMessage - The encoded byte array of the value that is serialized
+    # + T - The type of the deserialized data. This will be inferred from the expected type
     # + return - The value represented by the encoded byte array
-    public isolated function deserialize(byte[] encodedMessage) returns anydata|Error {
-        return deserialize(self, encodedMessage, self.dataType);
-    }
+    public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error =
+    @java:Method {
+    'class: "io.ballerina.stdlib.serdes.Deserializer"
+    }  external;
+
 }
 
-public isolated function generateSchema(SerDes serdes, typedesc<anydata> T) returns Error? =
+public isolated function generateSchema(Schema serdes, typedesc<anydata> T) returns Error? =
 @java:Method {
     'class: "io.ballerina.stdlib.serdes.SchemaGenerator"
-}  external;
-
-public isolated function serialize(SerDes ser, anydata data, typedesc<anydata> T) returns byte[]|Error = @java:Method {
-    'class: "io.ballerina.stdlib.serdes.Serializer"
-}  external;
-
-public isolated function deserialize(SerDes des, byte[] encodedMessage, typedesc<anydata> T) returns anydata|Error =
-@java:Method {
-    'class: "io.ballerina.stdlib.serdes.Deserializer"
 }  external;

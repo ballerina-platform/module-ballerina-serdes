@@ -24,6 +24,7 @@ import com.google.protobuf.DynamicMessage;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -62,6 +63,8 @@ public class Serializer {
     static final String SERIALIZATION_ERROR_MESSAGE = "Failed to Serialize data: ";
     static final String TYPE_MISMATCH_ERROR_MESSAGE = "Type mismatch";
 
+    static final BString BALLERINA_TYPEDESC_ATTRIBUTE_NAME = StringUtils.fromString("dataType");
+
     /**
      * Creates a BArray for given data after serializing.
      *
@@ -69,7 +72,8 @@ public class Serializer {
      * @param message Data that is being serialized.
      * @return Byte array of the serialized value.
      */
-    public static Object serialize(BObject serializer, Object message, BTypedesc dataType) {
+    public static Object serialize(BObject serializer, Object message) {
+        BTypedesc dataType = (BTypedesc) serializer.get(BALLERINA_TYPEDESC_ATTRIBUTE_NAME);
         Descriptor schema = (Descriptor) serializer.getNativeData(SCHEMA_NAME);
         DynamicMessage dynamicMessage;
         try {
