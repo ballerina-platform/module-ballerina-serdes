@@ -42,7 +42,7 @@ public class Proto3Schema {
     # Deserializes a given array of bytes.
     #
     # + encodedMessage - The encoded byte array of the value that is serialized
-    # + T - the typedesc
+    # + T - The type of the deserialized data. This will be inferred from the expected type
     # + return - The value represented by the encoded byte array
     public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error =
     @java:Method {
