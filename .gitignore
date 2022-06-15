@@ -38,3 +38,7 @@ build
 
 # Unused toml files
 Dependencies.toml
+
+
+# Generated proto files
+ballerina/*.proto

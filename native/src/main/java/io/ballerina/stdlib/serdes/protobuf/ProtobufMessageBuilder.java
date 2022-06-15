@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.serdes.protobuf;
 
+import java.util.Comparator;
 import java.util.HashMap;
 
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
@@ -61,5 +62,32 @@ public class ProtobufMessageBuilder {
             messageDescriptorProtoBuilder.addNestedType(nestedProtobufMessage);
             nestedMessages.put(nestedMessage.getName(), nestedMessage);
         }
+    }
+
+    @Override
+    public String toString() {
+        return toString("");
+    }
+
+    public String toString(String space) {
+        String protoStart = space + "message " + messageName + " {\n";
+        String levelSpace = space + "  ";
+        StringBuilder msgContent = new StringBuilder();
+
+        // Build string for nested types
+        nestedMessages
+                .values()
+                .forEach(nestedMessage -> msgContent.append(nestedMessage.toString(levelSpace)).append("\n"));
+
+        // Build string for field
+        messageFields
+                .values()
+                .stream()
+                .sorted(Comparator.comparingInt(ProtobufMessageFieldBuilder::getFieldNumber))
+                .forEach(messageField -> msgContent.append(messageField.toString(levelSpace)));
+
+        String protoEnd = space + "}\n";
+
+        return protoStart + msgContent + protoEnd;
     }
 }

@@ -18,12 +18,12 @@
 
 package io.ballerina.stdlib.serdes.protobuf;
 
-import io.ballerina.stdlib.serdes.Constants;
-
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import static com.google.protobuf.Descriptors.Descriptor;
 import static com.google.protobuf.Descriptors.DescriptorValidationException;
 import static com.google.protobuf.Descriptors.FileDescriptor;
+import static io.ballerina.stdlib.serdes.Constants.PROTO3;
+import static io.ballerina.stdlib.serdes.Constants.SYNTAX;
 
 /**
  * Dynamically create and build a proto file.
@@ -31,20 +31,30 @@ import static com.google.protobuf.Descriptors.FileDescriptor;
 public class ProtobufFileBuilder {
 
     private final FileDescriptorProto.Builder fileDescProtoBuilder;
+    // This protobufFileDescriptor only contains a single message
+    private ProtobufMessageBuilder protobufMessage;
 
     public ProtobufFileBuilder() {
         fileDescProtoBuilder = FileDescriptorProto.newBuilder();
-        fileDescProtoBuilder.setSyntax(Constants.PROTO3);
+        fileDescProtoBuilder.setSyntax(PROTO3);
     }
 
     // Utmost one dynamic message schema added to the protobuf file
     public ProtobufFileBuilder addMessageType(ProtobufMessageBuilder protobufMessageBuilder) {
         fileDescProtoBuilder.addMessageType(protobufMessageBuilder.getProtobufMessage());
+        protobufMessage = protobufMessageBuilder;
         return this;
     }
 
     public Descriptor build() throws DescriptorValidationException {
         FileDescriptor[] fileDescriptors = new FileDescriptor[]{};
         return FileDescriptor.buildFrom(fileDescProtoBuilder.build(), fileDescriptors).getMessageTypes().get(0);
+    }
+
+    @Override
+    public String toString() {
+        return SYNTAX + " = \"" + fileDescProtoBuilder.getSyntax() + "\";"
+                + "\n\n"
+                + protobufMessage;
     }
 }

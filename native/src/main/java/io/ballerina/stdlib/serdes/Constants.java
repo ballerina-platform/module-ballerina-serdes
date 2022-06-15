@@ -49,9 +49,12 @@ public class Constants {
     public static final String SCALE = "scale";
     public static final String PRECISION = "precision";
     public static final String VALUE = "value";
+    public static final String SYNTAX = "syntax";
+
 
     public static final String SEPARATOR = "_";
     public static final String TYPE_SEPARATOR = "__";
+    public static final String SPACE = " ";
 
     // Constants related to protobuf labels and types
     public static final String PROTO3 = "proto3";
@@ -67,5 +70,6 @@ public class Constants {
     public static final String SERIALIZATION_ERROR_MESSAGE = "Failed to Serialize data: ";
     public static final String TYPE_MISMATCH_ERROR_MESSAGE = "Type mismatch";
     public static final String SCHEMA_GENERATION_FAILURE = "Failed to generate schema: ";
+    public static final String FAILED_WRITE_FILE = "Failed to write proto file: ";
     public static final BString BALLERINA_TYPEDESC_ATTRIBUTE_NAME = StringUtils.fromString("dataType");
 }

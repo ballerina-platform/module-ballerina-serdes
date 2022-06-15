@@ -19,6 +19,9 @@
 package io.ballerina.stdlib.serdes.protobuf;
 
 import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import static io.ballerina.stdlib.serdes.Constants.EMPTY_STRING;
+import static io.ballerina.stdlib.serdes.Constants.REPEATED_LABEL;
+import static io.ballerina.stdlib.serdes.Constants.SPACE;
 
 /**
  * Creates a Protocol Buffer message field.
@@ -26,11 +29,18 @@ import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 public class ProtobufMessageFieldBuilder {
 
     private final FieldDescriptorProto.Builder messageFieldBuilder;
+    private final String fieldLabel;
     private final String fieldName;
+    private final String fieldType;
+    private final int fieldNumber;
 
     public ProtobufMessageFieldBuilder(String label, String type, String name, int number) {
         FieldDescriptorProto.Label fieldLabel = ProtobufMessageFieldProperties.getFieldLabel(label);
         messageFieldBuilder = FieldDescriptorProto.newBuilder();
+
+        this.fieldLabel = label;
+        fieldNumber = number;
+        fieldType = type;
         fieldName = name;
 
         messageFieldBuilder.setLabel(fieldLabel);
@@ -52,4 +62,32 @@ public class ProtobufMessageFieldBuilder {
     public String getFieldName() {
         return fieldName;
     }
+
+    public String getFieldLabel() {
+        return fieldLabel;
+    }
+
+    public String getFieldType() {
+        return fieldType;
+    }
+
+    public int getFieldNumber() {
+        return fieldNumber;
+    }
+
+    public String toString(String indentation) {
+        String fieldLabel = getFieldLabel().equals(REPEATED_LABEL) ? REPEATED_LABEL + SPACE : EMPTY_STRING;
+        return indentation
+                + SPACE
+                + fieldLabel
+                + getFieldType()
+                + SPACE
+                + getFieldName()
+                + SPACE
+                +
+                " = "
+                + getFieldNumber()
+                + ";\n";
+    }
+
 }

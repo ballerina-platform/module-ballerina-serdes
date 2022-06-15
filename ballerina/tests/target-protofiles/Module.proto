@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+message Module {
+  message stars__UnionBuilder {
+     sint64 int__unionField  = 1;
+     bool nullField  = 2;
+  }
+
+  message id__UnionBuilder {
+     string string__unionField  = 1;
+     sint64 int__unionField  = 2;
+  }
+
+  message Contributor {
+     string username  = 1;
+     bytes img  = 2;
+  }
+
+   string name  = 1;
+   id__UnionBuilder id  = 2;
+   stars__UnionBuilder stars  = 3;
+   repeated Contributor contributors  = 4;
+}

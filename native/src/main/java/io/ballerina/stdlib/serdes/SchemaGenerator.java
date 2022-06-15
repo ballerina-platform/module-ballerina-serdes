@@ -27,12 +27,16 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
 import io.ballerina.stdlib.serdes.protobuf.ProtobufFileBuilder;
 import io.ballerina.stdlib.serdes.protobuf.ProtobufMessageBuilder;
 import io.ballerina.stdlib.serdes.protobuf.ProtobufMessageFieldBuilder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static com.google.protobuf.Descriptors.Descriptor;
@@ -43,9 +47,11 @@ import static io.ballerina.stdlib.serdes.Constants.ATOMIC_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.BOOL;
 import static io.ballerina.stdlib.serdes.Constants.BYTES;
 import static io.ballerina.stdlib.serdes.Constants.DECIMAL_VALUE;
+import static io.ballerina.stdlib.serdes.Constants.FAILED_WRITE_FILE;
 import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.OPTIONAL_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
+import static io.ballerina.stdlib.serdes.Constants.PROTO3;
 import static io.ballerina.stdlib.serdes.Constants.REPEATED_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_GENERATION_FAILURE;
@@ -80,10 +86,24 @@ public class SchemaGenerator {
                     bTypedesc.getDescribingType());
             Descriptor messageDescriptor = protobufFile.addMessageType(protobufMessageBuilder).build();
             serdes.addNativeData(SCHEMA_NAME, messageDescriptor);
+            serdes.addNativeData(PROTO3, protobufFile.toString());
         } catch (BError ballerinaError) {
             return ballerinaError;
         } catch (DescriptorValidationException e) {
             String errorMessage = SCHEMA_GENERATION_FAILURE + e.getMessage();
+            return createSerdesError(errorMessage, SERDES_ERROR);
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unused")
+    public static Object generateProtoFile(BObject serdes, BString filePath) {
+        String filePathName = filePath.getValue();
+        try (FileWriter file = new FileWriter(filePathName, StandardCharsets.UTF_8)) {
+            String proto3 = (String) serdes.getNativeData(PROTO3);
+            file.write(proto3);
+        } catch (IOException e) {
+            String errorMessage = FAILED_WRITE_FILE + e.getMessage();
             return createSerdesError(errorMessage, SERDES_ERROR);
         }
         return null;
