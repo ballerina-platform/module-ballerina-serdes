@@ -18,56 +18,48 @@
 
 package io.ballerina.stdlib.serdes.protobuf;
 
-import com.google.protobuf.DescriptorProtos;
+import java.util.HashMap;
+
+import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 
 /**
-* Message Builder Class that creates a Protobuf Message with the provided fields.
-*
-*/
+ * Dynamically creates a Protocol Buffer message type.
+ */
 public class ProtobufMessageBuilder {
 
-    // Describes a message type
-    private DescriptorProtos.DescriptorProto.Builder messageBuilder;
+    private final DescriptorProto.Builder messageDescriptorProtoBuilder;
+    private final HashMap<String, ProtobufMessageBuilder> nestedMessages = new HashMap<>();
+    private final HashMap<String, ProtobufMessageFieldBuilder> messageFields = new HashMap<>();
+    private final String messageName;
 
-    // Constructor with message name as parameter
-    ProtobufMessageBuilder(String messageName) {
-        messageBuilder = DescriptorProtos.DescriptorProto.newBuilder();
-        messageBuilder.setName(messageName);
+    public ProtobufMessageBuilder(String msgName) {
+        messageName = msgName;
+        messageDescriptorProtoBuilder = DescriptorProto.newBuilder();
+        messageDescriptorProtoBuilder.setName(msgName);
     }
 
-    // Add message field without default value
-    public ProtobufMessageBuilder addField(String label, String type, String name, int number) {
-        DescriptorProtos.FieldDescriptorProto.Label fieldLabel = ProtobufMessageField.getFieldLabel(label);
-        addField(fieldLabel, type, name, number, null);
-        return this;
+    public String getName() {
+        return messageName;
     }
 
-    // Add a message that is defined within a message
-    public ProtobufMessageBuilder addNestedMessage(ProtobufMessage nestedMessage) {
-        messageBuilder.addNestedType(nestedMessage.getProtobufMessage());
-        return this;
+    public DescriptorProto.Builder getProtobufMessage() {
+        return messageDescriptorProtoBuilder;
     }
 
-    public ProtobufMessage build() {
-        return new ProtobufMessage(messageBuilder.build());
-    }
-
-    // Add a single field to a message
-    public void addField(DescriptorProtos.FieldDescriptorProto.Label label, String type, String name, int number,
-                            String defaultValue) {
-
-        // Describes a field within a message.
-        DescriptorProtos.FieldDescriptorProto.Builder messageFieldBuilder = DescriptorProtos.FieldDescriptorProto
-                                                                                            .newBuilder();
-        messageFieldBuilder.setLabel(label);
-        messageFieldBuilder.setName(name);
-        messageFieldBuilder.setNumber(number);
-        DescriptorProtos.FieldDescriptorProto.Type fieldType = ProtobufMessageField.getFieldType(type);
-        if (fieldType != null) {
-            messageFieldBuilder.setType(fieldType);
-        } else {
-            messageFieldBuilder.setTypeName(type);
+    public void addField(ProtobufMessageFieldBuilder messageFieldBuilder) {
+        boolean isDefined = messageFields.get(messageFieldBuilder.getFieldName()) != null;
+        if (!isDefined) {
+            messageDescriptorProtoBuilder.addField(messageFieldBuilder.getMessageField());
+            messageFields.put(messageFieldBuilder.getFieldName(), messageFieldBuilder);
         }
-        messageBuilder.addField(messageFieldBuilder.build());
+    }
+
+    public void addNestedMessage(ProtobufMessageBuilder nestedMessage) {
+        DescriptorProto.Builder nestedProtobufMessage = nestedMessage.getProtobufMessage();
+        boolean isDefined = nestedMessages.get(nestedMessage.getName()) != null;
+        if (!isDefined) {
+            messageDescriptorProtoBuilder.addNestedType(nestedProtobufMessage);
+            nestedMessages.put(nestedMessage.getName(), nestedMessage);
+        }
     }
 }
