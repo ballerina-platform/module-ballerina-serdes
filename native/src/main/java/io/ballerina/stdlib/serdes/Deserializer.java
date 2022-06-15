@@ -221,7 +221,7 @@ public class Deserializer {
             Type elementType,
             Descriptor messageDescriptor,
             int dimensions,
-            String ballerinaTypeNamePrefixOfUnionField) {
+            String ballerinaTypeNamePrefixOfUnionMemberOrRecordField) {
 
         // Handle byte array value
         if (value instanceof ByteString) {
@@ -265,9 +265,9 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) elementType;
                     String typeName = ARRAY_BUILDER_NAME;
 
-                    if (ballerinaTypeNamePrefixOfUnionField != null) {
+                    if (ballerinaTypeNamePrefixOfUnionMemberOrRecordField != null) {
                         typeName = ARRAY_BUILDER_NAME + SEPARATOR + (dimensions - 1);
-                        typeName = ballerinaTypeNamePrefixOfUnionField + TYPE_SEPARATOR + typeName;
+                        typeName = ballerinaTypeNamePrefixOfUnionMemberOrRecordField + TYPE_SEPARATOR + typeName;
                     }
 
                     Descriptor nestedSchema = messageDescriptor.findNestedTypeByName(typeName);
@@ -334,7 +334,16 @@ public class Deserializer {
                 case TypeTags.ARRAY_TAG: {
                     ArrayType arrayType = (ArrayType) entryFieldType;
                     Descriptor recordSchema = fieldDescriptor.getContainingType();
-                    ballerinaValue = getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema);
+
+                    String ballerinaTypeName = Utils.getElementTypeOfBallerinaArray(arrayType);
+                    int dimention = Utils.getDimensions(arrayType);
+
+                    ballerinaValue = getArrayTypeValueFromMessage(
+                            value,
+                            arrayType.getElementType(),
+                            recordSchema,
+                            dimention,
+                            ballerinaTypeName);
                     break;
                 }
 

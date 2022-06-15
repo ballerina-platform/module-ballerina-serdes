@@ -35,6 +35,11 @@ type RecordWithArrays record {
     byte[] byteArray;
 };
 
+type RecordWithMultidimentionalArrays record {
+    string[][][] string3DArray;
+    decimal[][] decimal2DArray;
+};
+
 type Contact record {
     string mobile;
     string home;
@@ -202,4 +207,16 @@ public isolated function testRecordWithUnionFields() returns error? {
     Proto3Schema des = check new (RecordWithUnionFields);
     RecordWithUnionFields decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, rec);
+}
+
+@test:Config{}
+public function testRecordWithMultidimentionalArrays() returns error? {
+    Proto3Schema ser = check new Proto3Schema(RecordWithMultidimentionalArrays);
+    check ser.generateProtoFile("Data.proto");
+    RecordWithMultidimentionalArrays data = {string3DArray:[[["serdes"]]], decimal2DArray: [[3.45d],[4e3]]};
+    byte[] enc = check ser.serialize(data);
+
+    Schema des = check  new Proto3Schema(RecordWithMultidimentionalArrays);
+    RecordWithMultidimentionalArrays dec = check des.deserialize(enc);
+    test:assertEquals(dec, data);
 }

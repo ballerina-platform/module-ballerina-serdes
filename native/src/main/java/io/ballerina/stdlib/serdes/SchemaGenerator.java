@@ -258,13 +258,16 @@ public class SchemaGenerator {
                     ArrayType arrayType = (ArrayType) memberType;
                     int dimention = Utils.getDimensions(arrayType);
                     fieldName = ARRAY_FIELD_NAME + SEPARATOR + dimention;
+                    boolean isUnionMember = true;
+                    boolean isRecordField = false;
                     generateMessageDefinitionForArrayType(
                             messageBuilder,
                             arrayType,
                             fieldName,
                             dimention,
                             fieldNumber,
-                            true);
+                            isUnionMember,
+                            isRecordField);
                     break;
                 }
 
@@ -297,17 +300,44 @@ public class SchemaGenerator {
             ProtobufMessageBuilder messageBuilder,
             ArrayType arrayType,
             String fieldName,
-            int fieldNumber) {
-        generateMessageDefinitionForArrayType(messageBuilder, arrayType, fieldName, -1, fieldNumber, false);
+            int fieldNumber,
+            int dimention,
+            boolean isRecordField) {
+
+        generateMessageDefinitionForArrayType(
+                messageBuilder,
+                arrayType,
+                fieldName,
+                dimention,
+                fieldNumber,
+                false,
+                isRecordField);
     }
 
     private static void generateMessageDefinitionForArrayType(
             ProtobufMessageBuilder messageBuilder,
             ArrayType arrayType,
             String fieldName,
-            int dimensions,
+            int fieldNumber) {
+
+        generateMessageDefinitionForArrayType(
+                messageBuilder,
+                arrayType,
+                fieldName,
+                -1,
+                fieldNumber,
+                false,
+                false);
+    }
+
+    private static void generateMessageDefinitionForArrayType(
+            ProtobufMessageBuilder messageBuilder,
+            ArrayType arrayType,
+            String fieldName,
+            int dimension,
             int fieldNumber,
-            boolean isUnionField) {
+            boolean isUnionMember,
+            boolean isRecordField) {
 
         Type elementType = arrayType.getElementType();
 
@@ -320,7 +350,7 @@ public class SchemaGenerator {
                 String protoType = DataTypeMapper.mapBallerinaTypeToProtoType(elementType.getTag());
                 String label = protoType.equals(BYTES) ? OPTIONAL_LABEL : REPEATED_LABEL;
 
-                if (isUnionField) {
+                if (isUnionMember) {
                     // Field names and nested message names are prefixed with ballerina type to avoid name collision
                     fieldName = elementType.getName() + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 }
@@ -338,7 +368,7 @@ public class SchemaGenerator {
             case TypeTags.DECIMAL_TAG: {
                 String protoType = DataTypeMapper.mapBallerinaTypeToProtoType(elementType.getTag());
 
-                if (isUnionField) {
+                if (isUnionMember) {
                     fieldName = elementType.getName() + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 }
 
@@ -358,7 +388,7 @@ public class SchemaGenerator {
             case TypeTags.UNION_TAG: {
                 String nestedMessageName = UNION_BUILDER_NAME;
 
-                if (isUnionField) {
+                if (isUnionMember) {
                     String ballerinaType = Utils.getElementTypeOfBallerinaArray(arrayType);
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
@@ -381,11 +411,15 @@ public class SchemaGenerator {
                 ArrayType nestedArrayType = (ArrayType) elementType;
                 String nestedMessageName = ARRAY_BUILDER_NAME;
 
-                if (isUnionField) {
+                if (isUnionMember) {
                     String ballerinaType = Utils.getElementTypeOfBallerinaArray(nestedArrayType);
-                    nestedMessageName = ARRAY_BUILDER_NAME + SEPARATOR + (dimensions - 1);
+                    nestedMessageName = ARRAY_BUILDER_NAME + SEPARATOR + (dimension - 1);
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
+                } else if (isRecordField) {
+                    String ballerinaType = Utils.getElementTypeOfBallerinaArray(nestedArrayType);
+                    nestedMessageName = ARRAY_BUILDER_NAME + SEPARATOR + (dimension - 1);
+                    nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
                 }
 
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
@@ -409,7 +443,7 @@ public class SchemaGenerator {
                 RecordType recordType = (RecordType) elementType;
                 String nestedMessageName = recordType.getName();
 
-                if (isUnionField) {
+                if (isUnionMember) {
                     String ballerinaType = recordType.getName();
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 }
@@ -491,11 +525,15 @@ public class SchemaGenerator {
 
                 case TypeTags.ARRAY_TAG: {
                     ArrayType arrayType = (ArrayType) fieldEntryType;
+                    int dimention = Utils.getDimensions(arrayType);
+                    boolean isRecordField = true;
                     generateMessageDefinitionForArrayType(
                             messageBuilder,
                             arrayType,
                             fieldEntryName,
-                            fieldNumber);
+                            fieldNumber,
+                            dimention,
+                            isRecordField);
                     break;
                 }
 
