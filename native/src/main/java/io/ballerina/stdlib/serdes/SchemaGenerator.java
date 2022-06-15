@@ -37,7 +37,10 @@ import io.ballerina.stdlib.serdes.protobuf.ProtobufMessageFieldBuilder;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.protobuf.Descriptors.Descriptor;
 import static com.google.protobuf.Descriptors.DescriptorValidationException;
@@ -205,6 +208,27 @@ public class SchemaGenerator {
         messageBuilder.addField(valueField);
     }
 
+    private static String mapUnionMemberNameToProtoFieldName(Type type) {
+
+        String typeName = type.getName();
+        if (type instanceof ArrayType) {
+            int dimention = Utils.getDimensions((ArrayType) type);
+            typeName = Utils.getElementTypeOfBallerinaArray((ArrayType) type);
+            return typeName + TYPE_SEPARATOR + ARRAY_FIELD_NAME
+                    + SEPARATOR + dimention + TYPE_SEPARATOR + UNION_FIELD_NAME;
+        }
+
+        if (type instanceof RecordType) {
+            return type.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
+        }
+
+        if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)) {
+            return typeName;
+        }
+
+        throw createSerdesError(UNSUPPORTED_DATA_TYPE + type.getName(), SERDES_ERROR);
+    }
+
     private static void generateMessageDefinitionForUnionType(
             ProtobufMessageBuilder messageBuilder,
             UnionType unionType) {
@@ -212,8 +236,15 @@ public class SchemaGenerator {
         int fieldNumber = 1;
         String fieldName;
 
+        List<Type> memberTypes = unionType.getMemberTypes()
+                .stream()
+                .map(memberType -> Map.entry(mapUnionMemberNameToProtoFieldName(memberType), memberType))
+                .sorted(Map.Entry.comparingByKey())
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
         // Member field names are prefixed with ballerina type name to avoid name collision in proto message definition
-        for (Type memberType : unionType.getMemberTypes()) {
+        for (Type memberType : memberTypes) {
             switch (memberType.getTag()) {
                 case TypeTags.NULL_TAG: {
                     fieldName = NULL_FIELD_NAME;
@@ -270,7 +301,6 @@ public class SchemaGenerator {
                             isRecordField);
                     break;
                 }
-
 
                 case TypeTags.RECORD_TYPE_TAG: {
                     RecordType recordType = (RecordType) memberType;
@@ -473,9 +503,12 @@ public class SchemaGenerator {
         Map<String, Field> recordFields = recordType.getFields();
         int fieldNumber = 1;
 
-        for (var fieldEntry : recordFields.entrySet()) {
-            String fieldEntryName = fieldEntry.getKey();
-            Type fieldEntryType = fieldEntry.getValue().getFieldType();
+        List<Field> fieldEntries = recordFields.values().stream()
+                .sorted(Comparator.comparing(Field::getFieldName)).collect(Collectors.toList());
+
+        for (var fieldEntry : fieldEntries) {
+            String fieldEntryName = fieldEntry.getFieldName();
+            Type fieldEntryType = fieldEntry.getFieldType();
 
             switch (fieldEntryType.getTag()) {
                 case TypeTags.INT_TAG:

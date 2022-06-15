@@ -31,6 +31,7 @@ public class DataTypeMapper {
     private static final Map<String, String> javaTypeToProto = new HashMap<>();
     private static final Map<Integer, String> ballerinaTypeTagToProto = new HashMap<>();
     private static final Map<String, String> javaTypeToBallerinaType = new HashMap<>();
+    private static final Map<String, String> ballerinaPrimitiveType = new HashMap<>();
 
     static {
         javaTypeToProto.put("Double", "double");
@@ -60,10 +61,22 @@ public class DataTypeMapper {
         ballerinaTypeTagToProto.put(TypeTags.DECIMAL_TAG, "DecimalValue");
         ballerinaTypeTagToProto.put(TypeTags.STRING_TAG, "string");
         ballerinaTypeTagToProto.put(TypeTags.BOOLEAN_TAG, "bool");
+
+        ballerinaPrimitiveType.put("int", "int");
+        ballerinaPrimitiveType.put("byte", "byte");
+        ballerinaPrimitiveType.put("string", "string");
+        ballerinaPrimitiveType.put("decimal", "decimal");
+        ballerinaPrimitiveType.put("boolean", "boolean");
+        ballerinaPrimitiveType.put("float", "float");
+        ballerinaPrimitiveType.put("()", "()");
     }
 
     public static String mapBallerinaTypeToProtoType(int ballerinaTypeTag) {
         return ballerinaTypeTagToProto.get(ballerinaTypeTag);
+    }
+
+    public static boolean isValidBallerinaPrimitiveType(String typeName) {
+        return ballerinaPrimitiveType.get(typeName) != null;
     }
 
     public static boolean isValidJavaType(String javaType) {
