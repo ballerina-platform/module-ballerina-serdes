@@ -68,7 +68,6 @@ public class DataTypeMapper {
         ballerinaPrimitiveType.put("decimal", "decimal");
         ballerinaPrimitiveType.put("boolean", "boolean");
         ballerinaPrimitiveType.put("float", "float");
-        ballerinaPrimitiveType.put("()", "()");
     }
 
     public static String mapBallerinaTypeToProtoType(int ballerinaTypeTag) {

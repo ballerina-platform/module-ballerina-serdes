@@ -51,6 +51,7 @@ import static io.ballerina.stdlib.serdes.Constants.BOOL;
 import static io.ballerina.stdlib.serdes.Constants.BYTES;
 import static io.ballerina.stdlib.serdes.Constants.DECIMAL_VALUE;
 import static io.ballerina.stdlib.serdes.Constants.FAILED_WRITE_FILE;
+import static io.ballerina.stdlib.serdes.Constants.NIL;
 import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.OPTIONAL_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
@@ -208,22 +209,36 @@ public class SchemaGenerator {
         messageBuilder.addField(valueField);
     }
 
-    private static String mapUnionMemberNameToProtoFieldName(Type type) {
+    private static Map.Entry<String, Type> mapUnionMemberToMapEntry(Type type) {
 
         String typeName = type.getName();
         if (type instanceof ArrayType) {
             int dimention = Utils.getDimensions((ArrayType) type);
             typeName = Utils.getElementTypeOfBallerinaArray((ArrayType) type);
-            return typeName + TYPE_SEPARATOR + ARRAY_FIELD_NAME
-                    + SEPARATOR + dimention + TYPE_SEPARATOR + UNION_FIELD_NAME;
+
+            String key = typeName
+                    + TYPE_SEPARATOR
+                    + ARRAY_FIELD_NAME
+                    + SEPARATOR
+                    + dimention
+                    + TYPE_SEPARATOR
+                    + UNION_FIELD_NAME;
+
+            return Map.entry(key, type);
         }
 
         if (type instanceof RecordType) {
-            return type.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
+            String key = type.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
+            return Map.entry(key, type);
         }
 
         if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)) {
-            return typeName;
+            String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
+            return Map.entry(key, type);
+        }
+
+        if (typeName.equals(NIL)) {
+            return Map.entry(NULL_FIELD_NAME, type);
         }
 
         throw createSerdesError(UNSUPPORTED_DATA_TYPE + type.getName(), SERDES_ERROR);
@@ -238,7 +253,7 @@ public class SchemaGenerator {
 
         List<Type> memberTypes = unionType.getMemberTypes()
                 .stream()
-                .map(memberType -> Map.entry(mapUnionMemberNameToProtoFieldName(memberType), memberType))
+                .map(SchemaGenerator::mapUnionMemberToMapEntry)
                 .sorted(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());

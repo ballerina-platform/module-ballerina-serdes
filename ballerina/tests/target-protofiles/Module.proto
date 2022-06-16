@@ -2,8 +2,8 @@ syntax = "proto3";
 
 message Module {
   message stars__UnionBuilder {
-     bool nullField  = 1;
-     sint64 int__unionField  = 2;
+     sint64 int__unionField  = 1;
+     bool nullField  = 2;
   }
 
   message id__UnionBuilder {

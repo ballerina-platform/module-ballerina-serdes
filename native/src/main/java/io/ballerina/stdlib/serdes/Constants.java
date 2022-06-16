@@ -32,6 +32,7 @@ public class Constants {
     public static final String STRING = "string";
     public static final String BYTE = "byte";
     public static final String DECIMAL = "decimal";
+    public static final String NIL = "()";
 
     // Constants related to java type
     public static final String INTEGER = "Integer";
