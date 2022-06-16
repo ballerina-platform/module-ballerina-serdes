@@ -320,9 +320,16 @@ public class SchemaGenerator {
                 case TypeTags.RECORD_TYPE_TAG: {
                     RecordType recordType = (RecordType) memberType;
                     String nestedMessageName = recordType.getName();
-                    ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
-                    generateMessageDefinitionForRecordType(nestedMessageBuilder, recordType);
-                    messageBuilder.addNestedMessage(nestedMessageBuilder);
+
+                    // Check for cyclic reference in ballerina record
+                    boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
+                    if (!hasMessageDefinition) {
+                        ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(
+                                nestedMessageName,
+                                messageBuilder);
+                        generateMessageDefinitionForRecordType(nestedMessageBuilder, recordType);
+                        messageBuilder.addNestedMessage(nestedMessageBuilder);
+                    }
 
                     fieldName = recordType.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(
@@ -439,7 +446,9 @@ public class SchemaGenerator {
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 }
 
-                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(
+                        nestedMessageName,
+                        messageBuilder);
                 generateMessageDefinitionForUnionType(nestedMessageBuilder, (UnionType) elementType);
                 messageBuilder.addNestedMessage(nestedMessageBuilder);
 
@@ -467,7 +476,9 @@ public class SchemaGenerator {
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
                 }
 
-                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(
+                        nestedMessageName,
+                        messageBuilder);
                 generateMessageDefinitionForArrayType(
                         nestedMessageBuilder,
                         nestedArrayType,
@@ -493,9 +504,13 @@ public class SchemaGenerator {
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 }
 
-                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
-                generateMessageDefinitionForRecordType(nestedMessageBuilder, recordType);
-                messageBuilder.addNestedMessage(nestedMessageBuilder);
+                // Check for cyclic reference in ballerina record
+                boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
+                if (!hasMessageDefinition) {
+                    ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
+                    generateMessageDefinitionForRecordType(nestedMessageBuilder, recordType);
+                    messageBuilder.addNestedMessage(nestedMessageBuilder);
+                }
 
                 ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(
                         REPEATED_LABEL,
@@ -558,7 +573,9 @@ public class SchemaGenerator {
 
                 case TypeTags.UNION_TAG: {
                     String nestedMessageName = fieldEntryName + TYPE_SEPARATOR + UNION_BUILDER_NAME;
-                    ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
+                    ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(
+                            nestedMessageName,
+                            messageBuilder);
                     generateMessageDefinitionForUnionType(nestedMessageBuilder, (UnionType) fieldEntryType);
                     messageBuilder.addNestedMessage(nestedMessageBuilder);
 
@@ -588,9 +605,16 @@ public class SchemaGenerator {
                 case TypeTags.RECORD_TYPE_TAG: {
                     RecordType nestedRecordType = (RecordType) fieldEntryType;
                     String nestedMessageName = nestedRecordType.getName();
-                    ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
-                    generateMessageDefinitionForRecordType(nestedMessageBuilder, nestedRecordType);
-                    messageBuilder.addNestedMessage(nestedMessageBuilder);
+                    boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
+
+                    // Check for cyclic reference in ballerina record
+                    if (!hasMessageDefinition) {
+                        ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(
+                                nestedMessageName,
+                                messageBuilder);
+                        generateMessageDefinitionForRecordType(nestedMessageBuilder, nestedRecordType);
+                        messageBuilder.addNestedMessage(nestedMessageBuilder);
+                    }
 
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(
                             OPTIONAL_LABEL,
