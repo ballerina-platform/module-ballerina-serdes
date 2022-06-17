@@ -56,7 +56,7 @@ public final class Constants {
 
 
     public static final String SEPARATOR = "_";
-    public static final String TYPE_SEPARATOR = "__";
+    public static final String TYPE_SEPARATOR = "___";
     public static final String SPACE = " ";
 
     // Constants related to protobuf labels and types
