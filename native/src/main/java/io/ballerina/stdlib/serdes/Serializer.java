@@ -81,11 +81,8 @@ public class Serializer {
         Descriptor messageDescriptor = (Descriptor) ser.getNativeData(SCHEMA_NAME);
         DynamicMessage dynamicMessage;
         try {
-            dynamicMessage = buildDynamicMessageFromType(
-                    anydata,
-                    messageDescriptor,
-                    bTypedesc.getDescribingType())
-                    .build();
+            dynamicMessage =
+                    buildDynamicMessageFromType(anydata, messageDescriptor, bTypedesc.getDescribingType()).build();
         } catch (BError ballerinaError) {
             return ballerinaError;
         } catch (IllegalArgumentException e) {
@@ -95,11 +92,8 @@ public class Serializer {
         return ValueCreator.createArrayValue(dynamicMessage.toByteArray());
     }
 
-    private static Builder buildDynamicMessageFromType(
-            Object anydata,
-            Descriptor messageDescriptor,
-            Type ballerinaType) {
-
+    private static Builder buildDynamicMessageFromType(Object anydata, Descriptor messageDescriptor,
+                                                       Type ballerinaType) {
         Builder messageBuilder = DynamicMessage.newBuilder(messageDescriptor);
 
         switch (ballerinaType.getTag()) {
@@ -109,10 +103,7 @@ public class Serializer {
             case TypeTags.STRING_TAG:
             case TypeTags.BOOLEAN_TAG: {
                 FieldDescriptor fieldDescriptor = messageDescriptor.findFieldByName(ATOMIC_FIELD_NAME);
-                return generateMessageForPrimitiveType(
-                        messageBuilder,
-                        fieldDescriptor,
-                        anydata,
+                return generateMessageForPrimitiveType(messageBuilder, fieldDescriptor, anydata,
                         ballerinaType.getName());
             }
 
@@ -130,8 +121,7 @@ public class Serializer {
             }
 
             case TypeTags.RECORD_TYPE_TAG: {
-                @SuppressWarnings("unchecked")
-                BMap<BString, Object> record = (BMap<BString, Object>) anydata;
+                @SuppressWarnings("unchecked") BMap<BString, Object> record = (BMap<BString, Object>) anydata;
                 return generateMessageForRecordType(messageBuilder, record);
             }
 
@@ -140,11 +130,8 @@ public class Serializer {
         }
     }
 
-    private static Builder generateMessageForPrimitiveType(
-            Builder messageBuilder,
-            FieldDescriptor field,
-            Object anydata,
-            String ballerinaTypeName) {
+    private static Builder generateMessageForPrimitiveType(Builder messageBuilder, FieldDescriptor field,
+                                                           Object anydata, String ballerinaTypeName) {
 
         if (ballerinaTypeName.equals(BYTE)) {
             byte[] data = new byte[]{((Integer) anydata).byteValue()};
@@ -159,11 +146,8 @@ public class Serializer {
         return messageBuilder;
     }
 
-    private static Builder generateMessageForPrimitiveDecimalType(
-            Builder messageBuilder,
-            Object anydata,
-            Descriptor decimalSchema) {
-
+    private static Builder generateMessageForPrimitiveDecimalType(Builder messageBuilder, Object anydata,
+                                                                  Descriptor decimalSchema) {
         BigDecimal bigDecimal = ((BDecimal) anydata).decimalValue();
 
         FieldDescriptor scale = decimalSchema.findFieldByName(SCALE);
@@ -179,7 +163,6 @@ public class Serializer {
 
 
     private static Builder generateMessageForUnionType(Builder messageBuilder, Object anydata) {
-
         Descriptor messageDescriptor = messageBuilder.getDescriptorForType();
 
         if (anydata == null) {
@@ -200,11 +183,8 @@ public class Serializer {
             if (ballerinaType.equals(DECIMAL)) {
                 Descriptor decimalSchema = fieldDescriptor.getMessageType();
                 Builder decimalMessageBuilder = DynamicMessage.newBuilder(decimalSchema);
-                DynamicMessage decimalMessage = generateMessageForPrimitiveDecimalType(
-                        decimalMessageBuilder,
-                        anydata,
-                        decimalSchema)
-                        .build();
+                DynamicMessage decimalMessage =
+                        generateMessageForPrimitiveDecimalType(decimalMessageBuilder, anydata, decimalSchema).build();
                 messageBuilder.setField(fieldDescriptor, decimalMessage);
                 return messageBuilder;
             }
@@ -230,8 +210,7 @@ public class Serializer {
                 dimention += Utils.getDimensions((ArrayType) bArray.getElementType());
             }
 
-            String fieldName = ballerinaType + TYPE_SEPARATOR
-                    + ARRAY_FIELD_NAME + SEPARATOR + dimention
+            String fieldName = ballerinaType + TYPE_SEPARATOR + ARRAY_FIELD_NAME + SEPARATOR + dimention
                     + TYPE_SEPARATOR + UNION_FIELD_NAME;
 
             FieldDescriptor fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
@@ -240,8 +219,7 @@ public class Serializer {
 
 
         if (anydata instanceof BMap) {
-            @SuppressWarnings("unchecked")
-            BMap<BString, Object> ballerinaMapOrRecord = (BMap<BString, Object>) anydata;
+            @SuppressWarnings("unchecked") BMap<BString, Object> ballerinaMapOrRecord = (BMap<BString, Object>) anydata;
             // Handle ballerina record
             if (ballerinaMapOrRecord.getType().getTag() == TypeTags.RECORD_TYPE_TAG) {
                 String recordTypename = ballerinaMapOrRecord.getType().getName();
@@ -249,10 +227,8 @@ public class Serializer {
                 FieldDescriptor fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
                 Descriptor recordSchema = fieldDescriptor.getMessageType();
                 Builder recordMessageBuilder = DynamicMessage.newBuilder(recordSchema);
-                DynamicMessage recordMessage = generateMessageForRecordType(
-                        recordMessageBuilder,
-                        ballerinaMapOrRecord)
-                        .build();
+                DynamicMessage recordMessage =
+                        generateMessageForRecordType(recordMessageBuilder, ballerinaMapOrRecord).build();
                 messageBuilder.setField(fieldDescriptor, recordMessage);
                 return messageBuilder;
             }
@@ -262,11 +238,8 @@ public class Serializer {
         throw createSerdesError(UNSUPPORTED_DATA_TYPE + bValue.getType().getName(), SERDES_ERROR);
     }
 
-    private static Builder generateMessageForArrayType(
-            Builder messageBuilder,
-            FieldDescriptor fieldDescriptor,
-            BArray bArray) {
-
+    private static Builder generateMessageForArrayType(Builder messageBuilder, FieldDescriptor fieldDescriptor,
+                                                       BArray bArray) {
         int len = bArray.size();
         Type elementType = bArray.getElementType();
 
@@ -297,11 +270,8 @@ public class Serializer {
                 case TypeTags.DECIMAL_TAG: {
                     Descriptor decimalSchema = fieldDescriptor.getMessageType();
                     Builder decimalBuilder = DynamicMessage.newBuilder(decimalSchema);
-                    DynamicMessage decimalMessage = generateMessageForPrimitiveDecimalType(
-                            decimalBuilder,
-                            element,
-                            decimalSchema)
-                            .build();
+                    DynamicMessage decimalMessage =
+                            generateMessageForPrimitiveDecimalType(decimalBuilder, element, decimalSchema).build();
                     messageBuilder.addRepeatedField(fieldDescriptor, decimalMessage);
                     break;
                 }
@@ -321,11 +291,9 @@ public class Serializer {
 
                     FieldDescriptor nestedFieldDescriptor = nestedMessageDescriptor.findFieldByName(ARRAY_FIELD_NAME);
 
-                    DynamicMessage nestedMessage = generateMessageForArrayType(
-                            nestedMessageBuilder,
-                            nestedFieldDescriptor,
-                            (BArray) element)
-                            .build();
+                    DynamicMessage nestedMessage =
+                            generateMessageForArrayType(nestedMessageBuilder, nestedFieldDescriptor,
+                                    (BArray) element).build();
                     messageBuilder.addRepeatedField(fieldDescriptor, nestedMessage);
                     break;
                 }
@@ -333,12 +301,9 @@ public class Serializer {
                 case TypeTags.RECORD_TYPE_TAG: {
                     Descriptor nestedSchema = fieldDescriptor.getMessageType();
                     Builder nestedMessageBuilder = DynamicMessage.newBuilder(nestedSchema);
-                    @SuppressWarnings("unchecked")
-                    BMap<BString, Object> recordMap = (BMap<BString, Object>) element;
-                    DynamicMessage recordMessage = generateMessageForRecordType(
-                            nestedMessageBuilder,
-                            recordMap)
-                            .build();
+                    @SuppressWarnings("unchecked") BMap<BString, Object> recordMap = (BMap<BString, Object>) element;
+                    DynamicMessage recordMessage =
+                            generateMessageForRecordType(nestedMessageBuilder, recordMap).build();
                     messageBuilder.addRepeatedField(fieldDescriptor, recordMessage);
                     break;
                 }
@@ -351,12 +316,11 @@ public class Serializer {
     }
 
     private static Builder generateMessageForRecordType(Builder messageBuilder, BMap<BString, Object> record) {
-
         Descriptor schema = messageBuilder.getDescriptorForType();
         RecordType recordType = (RecordType) record.getType();
         Map<String, Field> recordTypeFields = recordType.getFields();
 
-        for (var recordField : record.entrySet()) {
+        for (Map.Entry<BString, Object> recordField : record.entrySet()) {
             String recordFieldName = recordField.getKey().getValue();
             Object recordFieldValue = recordField.getValue();
 
@@ -369,10 +333,7 @@ public class Serializer {
                 case TypeTags.FLOAT_TAG:
                 case TypeTags.STRING_TAG:
                 case TypeTags.BOOLEAN_TAG: {
-                    generateMessageForPrimitiveType(
-                            messageBuilder,
-                            fieldDescriptor,
-                            recordFieldValue,
+                    generateMessageForPrimitiveType(messageBuilder, fieldDescriptor, recordFieldValue,
                             recordFieldType.getName());
                     break;
                 }
@@ -380,11 +341,9 @@ public class Serializer {
                 case TypeTags.DECIMAL_TAG: {
                     Descriptor decimalSchema = fieldDescriptor.getMessageType();
                     Builder decimalMessageBuilder = DynamicMessage.newBuilder(decimalSchema);
-                    DynamicMessage decimalMessage = generateMessageForPrimitiveDecimalType(
-                            decimalMessageBuilder,
-                            recordFieldValue,
-                            decimalSchema)
-                            .build();
+                    DynamicMessage decimalMessage =
+                            generateMessageForPrimitiveDecimalType(decimalMessageBuilder, recordFieldValue,
+                                    decimalSchema).build();
                     messageBuilder.setField(fieldDescriptor, decimalMessage);
                     break;
                 }
@@ -392,10 +351,8 @@ public class Serializer {
                 case TypeTags.UNION_TAG: {
                     Descriptor nestedSchema = fieldDescriptor.getMessageType();
                     Builder nestedMessageBuilder = DynamicMessage.newBuilder(nestedSchema);
-                    DynamicMessage nestedMessage = generateMessageForUnionType(
-                            nestedMessageBuilder,
-                            recordFieldValue)
-                            .build();
+                    DynamicMessage nestedMessage =
+                            generateMessageForUnionType(nestedMessageBuilder, recordFieldValue).build();
                     messageBuilder.setField(fieldDescriptor, nestedMessage);
                     break;
                 }
@@ -406,8 +363,8 @@ public class Serializer {
                 }
 
                 case TypeTags.RECORD_TYPE_TAG: {
-                    @SuppressWarnings("unchecked")
-                    BMap<BString, Object> nestedRecord = (BMap<BString, Object>) recordFieldValue;
+                    @SuppressWarnings("unchecked") BMap<BString, Object> nestedRecord =
+                            (BMap<BString, Object>) recordFieldValue;
                     Builder recordBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
                     DynamicMessage nestedMessage = generateMessageForRecordType(recordBuilder, nestedRecord).build();
                     messageBuilder.setField(fieldDescriptor, nestedMessage);

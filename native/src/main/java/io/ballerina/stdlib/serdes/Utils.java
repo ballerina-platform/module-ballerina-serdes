@@ -77,8 +77,7 @@ public class Utils {
 
     // Create protobuf message name for the given ballerina primitive type (string -> StringValue)
     public static String createMessageName(String ballerinaPrimitiveType) {
-        return ballerinaPrimitiveType.substring(0, 1).toUpperCase(Locale.ENGLISH)
-                + ballerinaPrimitiveType.substring(1)
-                + Constants.VALUE_SUFFIX;
+        return ballerinaPrimitiveType.substring(0, 1).toUpperCase(Locale.ENGLISH) + ballerinaPrimitiveType.substring(
+                1) + Constants.VALUE_SUFFIX;
     }
 }
