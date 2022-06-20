@@ -159,7 +159,6 @@ public class Deserializer {
         return value;
     }
 
-
     private static Object getUnionTypeValueFromMessage(DynamicMessage dynamicMessage, Type type) {
         Descriptor messageDescriptor = dynamicMessage.getDescriptorForType();
 
