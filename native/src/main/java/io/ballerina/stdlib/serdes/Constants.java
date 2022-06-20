@@ -54,7 +54,6 @@ public final class Constants {
     public static final String VALUE = "value";
     public static final String SYNTAX = "syntax";
 
-
     public static final String SEPARATOR = "_";
     public static final String TYPE_SEPARATOR = "___";
     public static final String SPACE = " ";
