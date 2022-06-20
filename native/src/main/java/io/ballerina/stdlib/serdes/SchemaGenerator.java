@@ -228,7 +228,6 @@ public class SchemaGenerator {
     private static void generateMessageDefinitionForUnionType(ProtobufMessageBuilder messageBuilder,
                                                               UnionType unionType) {
         int fieldNumber = 1;
-        String fieldName;
 
         List<Type> memberTypes =
                 unionType.getMemberTypes().stream().map(SchemaGenerator::mapUnionMemberToMapEntry).sorted(
@@ -236,6 +235,8 @@ public class SchemaGenerator {
 
         // Member field names are prefixed with ballerina type name to avoid name collision in proto message definition
         for (Type memberType : memberTypes) {
+            String fieldName;
+
             switch (memberType.getTag()) {
                 case TypeTags.NULL_TAG: {
                     fieldName = NULL_FIELD_NAME;
