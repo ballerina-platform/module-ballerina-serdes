@@ -49,6 +49,15 @@ public class Proto3Schema {
     'class: "io.ballerina.stdlib.serdes.Deserializer"
     }  external;
 
+    # Writes dynamically generated proto message defintion to a file.
+    #
+    # + filePath - File path along with file name
+    # + return - A `serdes:Error` on invalid file path or else `()`
+    isolated function generateProtoFile(string filePath) returns Error? =
+    @java:Method {
+    'class: "io.ballerina.stdlib.serdes.SchemaGenerator"
+    }  external;
+
 }
 
 public isolated function generateSchema(Schema serdes, typedesc<anydata> T) returns Error? =
