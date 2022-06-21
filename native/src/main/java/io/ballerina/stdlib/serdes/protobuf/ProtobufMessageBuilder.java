@@ -32,11 +32,17 @@ public class ProtobufMessageBuilder {
     private final HashMap<String, ProtobufMessageBuilder> nestedMessages = new HashMap<>();
     private final HashMap<String, ProtobufMessageFieldBuilder> messageFields = new HashMap<>();
     private final String messageName;
+    private final ProtobufMessageBuilder parentMessage;
 
     public ProtobufMessageBuilder(String msgName) {
+        this(msgName, null);
+    }
+
+    public ProtobufMessageBuilder(String msgName, ProtobufMessageBuilder parentMessage) {
         messageName = msgName;
         messageDescriptorProtoBuilder = DescriptorProto.newBuilder();
         messageDescriptorProtoBuilder.setName(msgName);
+        this.parentMessage = parentMessage;
     }
 
     public String getName() {
@@ -62,6 +68,14 @@ public class ProtobufMessageBuilder {
             messageDescriptorProtoBuilder.addNestedType(nestedProtobufMessage);
             nestedMessages.put(nestedMessage.getName(), nestedMessage);
         }
+    }
+
+    public boolean hasMessageDefinitionInMessageTree(String targetMsgName) {
+        if (messageName.equals(targetMsgName)) {
+            return true;
+        }
+        boolean hasMessage = nestedMessages.get(targetMsgName) != null;
+        return hasMessage || (parentMessage != null && parentMessage.hasMessageDefinitionInMessageTree(targetMsgName));
     }
 
     @Override

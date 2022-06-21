@@ -81,10 +81,31 @@ type Account record {
     int rating?;
 };
 
-
 type RecordWithUnionFields record {
     string name;
     int|string[]|UnionMember|() membership;
+};
+
+type RecordWithCyclicReference record {
+    string name;
+    RecordWithCyclicReference[]? nodeArray;
+    RecordWithCyclicReference? nodeWithNil;
+    RecordWithCyclicReference optional?;
+};
+
+type Nested1 record {
+    string name;
+    Nested2? nested;
+};
+
+type Nested2 record {
+    string name;
+    Nested3? nested;
+};
+
+type Nested3 record {
+    string name;
+    Nested1? nested;
 };
 
 @test:Config {}
@@ -209,14 +230,70 @@ public isolated function testRecordWithUnionFields() returns error? {
     test:assertEquals(decoded, rec);
 }
 
-@test:Config{}
+@test:Config {}
 public function testRecordWithMultidimentionalArrays() returns error? {
     Proto3Schema ser = check new Proto3Schema(RecordWithMultidimentionalArrays);
-    check ser.generateProtoFile("Data.proto");
-    RecordWithMultidimentionalArrays data = {string3DArray:[[["serdes"]]], decimal2DArray: [[3.45d],[4e3]]};
+
+    RecordWithMultidimentionalArrays data = {string3DArray: [[["serdes"]]], decimal2DArray: [[3.45d], [4e3]]};
     byte[] enc = check ser.serialize(data);
 
-    Schema des = check  new Proto3Schema(RecordWithMultidimentionalArrays);
+    Schema des = check new Proto3Schema(RecordWithMultidimentionalArrays);
     RecordWithMultidimentionalArrays dec = check des.deserialize(enc);
     test:assertEquals(dec, data);
+}
+
+@test:Config {}
+public function testRecordWithCyclicReference() returns error? {
+
+    RecordWithCyclicReference data = {
+        name: "ballerina",
+        nodeArray: [
+            {
+                name: "module",
+                nodeArray: (),
+                nodeWithNil: ()
+            }
+        ],
+        nodeWithNil: {
+            name: "serdes",
+            nodeArray: (),
+            nodeWithNil: ()
+        },
+        optional: {name: "stdlib", nodeArray: (), nodeWithNil: ()}
+    };
+
+    Proto3Schema ser = check new (RecordWithCyclicReference);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithCyclicReference);
+    RecordWithCyclicReference decoded = check des.deserialize(encode);
+
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public function testNestedRecordWithCyclicReference() returns error? {
+
+    Nested1 data = {
+        name: "nested1",
+        nested: {
+            name: "nested2",
+            nested: {
+                name: "nested3",
+                nested: {
+                    name: "nested1",
+                    nested: ()
+                }
+            }
+        }
+    };
+
+    Proto3Schema ser = check new (Nested1);
+    check ser.generateProtoFile("Nested.proto");
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new (Nested1);
+    Nested1 decoded = check des.deserialize(encode);
+
+    test:assertEquals(decoded, data);
 }

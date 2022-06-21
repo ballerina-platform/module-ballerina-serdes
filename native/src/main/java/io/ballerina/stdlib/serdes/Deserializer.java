@@ -22,7 +22,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
@@ -84,7 +83,7 @@ public class Deserializer {
             return dynamicMessageToBallerinaType(message, bTypedesc.getDescribingType());
         } catch (BError ballerinaError) {
             return ballerinaError;
-        } catch (InvalidProtocolBufferException e) {
+        } catch (Exception e) {
             return createSerdesError(DESERIALIZATION_ERROR_MESSAGE + e.getMessage(), SERDES_ERROR);
         }
     }
