@@ -53,7 +53,7 @@ public class Proto3Schema {
     #
     # + filePath - File path along with file name
     # + return - A `serdes:Error` on invalid file path or else `()`
-    public isolated function generateProtoFile(string filePath) returns Error? =
+    isolated function generateProtoFile(string filePath) returns Error? =
     @java:Method {
     'class: "io.ballerina.stdlib.serdes.SchemaGenerator"
     }  external;

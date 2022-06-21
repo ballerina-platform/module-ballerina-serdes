@@ -24,7 +24,9 @@ import io.ballerina.runtime.api.values.BString;
 /**
  * Constant variable for serdes related operations.
  */
-public class Constants {
+public final class Constants {
+
+    private Constants() {}
 
     public static final String EMPTY_STRING = "";
 
@@ -52,9 +54,8 @@ public class Constants {
     public static final String VALUE = "value";
     public static final String SYNTAX = "syntax";
 
-
     public static final String SEPARATOR = "_";
-    public static final String TYPE_SEPARATOR = "__";
+    public static final String TYPE_SEPARATOR = "___";
     public static final String SPACE = " ";
 
     // Constants related to protobuf labels and types

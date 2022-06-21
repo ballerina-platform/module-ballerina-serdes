@@ -42,6 +42,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.Collection;
+import java.util.Map;
 
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_BUILDER_NAME;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_FIELD_NAME;
@@ -88,7 +89,6 @@ public class Deserializer {
     }
 
     private static Object dynamicMessageToBallerinaType(DynamicMessage dynamicMessage, Type ballerinaType) {
-
         switch (ballerinaType.getTag()) {
             case TypeTags.INT_TAG:
             case TypeTags.BYTE_TAG:
@@ -127,7 +127,6 @@ public class Deserializer {
     }
 
     private static Object getDecimalPrimitiveTypeValueFromMessage(DynamicMessage decimalMessage) {
-
         Descriptor decimalSchema = decimalMessage.getDescriptorForType();
 
         FieldDescriptor valueField = decimalSchema.findFieldByName(VALUE);
@@ -143,7 +142,6 @@ public class Deserializer {
     }
 
     private static Object getPrimitiveTypeValueFromMessage(Object value) {
-
         if (value instanceof DynamicMessage) {
             DynamicMessage decimalMessage = ((DynamicMessage) value);
             return getDecimalPrimitiveTypeValueFromMessage(decimalMessage);
@@ -160,12 +158,10 @@ public class Deserializer {
         return value;
     }
 
-
     private static Object getUnionTypeValueFromMessage(DynamicMessage dynamicMessage, Type type) {
-
         Descriptor messageDescriptor = dynamicMessage.getDescriptorForType();
 
-        for (var entry : dynamicMessage.getAllFields().entrySet()) {
+        for (Map.Entry<FieldDescriptor, Object> entry : dynamicMessage.getAllFields().entrySet()) {
             Object value = entry.getValue();
             FieldDescriptor fieldDescriptor = entry.getKey();
 
@@ -181,18 +177,14 @@ public class Deserializer {
                 String ballerinaTypeName = tokens[0];
                 int dimention = Integer.parseInt(tokens[1].split(SEPARATOR)[1]);
                 ArrayType arrayType = getBallerinaArrayTypeFromUnion((UnionType) type, ballerinaTypeName, dimention);
-                return getArrayTypeValueFromMessage(
-                        value,
-                        arrayType.getElementType(),
-                        messageDescriptor,
-                        dimention,
+                return getArrayTypeValueFromMessage(value, arrayType.getElementType(), messageDescriptor, dimention,
                         ballerinaTypeName);
             } else if (value instanceof ByteString && fieldDescriptor.getName().contains(ARRAY_FIELD_NAME)) {
                 // Handle byte array values
                 ByteString byteString = (ByteString) value;
                 return ValueCreator.createArrayValue(byteString.toByteArray());
-            } else if (value instanceof DynamicMessage
-                    && !fieldDescriptor.getMessageType().getName().contains(DECIMAL_VALUE)) {
+            } else if (value instanceof DynamicMessage && !fieldDescriptor.getMessageType().getName().contains(
+                    DECIMAL_VALUE)) {
                 // Handle record values
                 String fieldName = fieldDescriptor.getName();
                 String[] tokens = fieldName.split(TYPE_SEPARATOR);
@@ -208,20 +200,13 @@ public class Deserializer {
         throw createSerdesError(UNSUPPORTED_DATA_TYPE + type.getName(), SERDES_ERROR);
     }
 
-    private static Object getArrayTypeValueFromMessage(
-            Object value,
-            Type elementType,
-            Descriptor messageDescriptor) {
+    private static Object getArrayTypeValueFromMessage(Object value, Type elementType, Descriptor messageDescriptor) {
         return getArrayTypeValueFromMessage(value, elementType, messageDescriptor, -1, null);
     }
 
-    private static Object getArrayTypeValueFromMessage(
-            Object value,
-            Type elementType,
-            Descriptor messageDescriptor,
-            int dimensions,
-            String ballerinaTypeNamePrefixOfUnionMemberOrRecordField) {
-
+    private static Object getArrayTypeValueFromMessage(Object value, Type elementType, Descriptor messageDescriptor,
+                                                       int dimensions,
+                                                       String ballerinaTypeNamePrefixOfUnionMemberOrRecordField) {
         // Handle byte array value
         if (value instanceof ByteString) {
             ByteString byteString = (ByteString) value;
@@ -273,10 +258,9 @@ public class Deserializer {
                     DynamicMessage nestedDynamicMessage = (DynamicMessage) element;
                     FieldDescriptor fieldDescriptor = nestedSchema.findFieldByName(ARRAY_FIELD_NAME);
                     Object nestedArrayContent = nestedDynamicMessage.getField(fieldDescriptor);
-                    BArray nestedArray = (BArray) getArrayTypeValueFromMessage(
-                            nestedArrayContent,
-                            arrayType.getElementType(),
-                            nestedSchema);
+                    BArray nestedArray =
+                            (BArray) getArrayTypeValueFromMessage(nestedArrayContent, arrayType.getElementType(),
+                                    nestedSchema);
                     bArray.append(nestedArray);
                     break;
                 }
@@ -296,7 +280,6 @@ public class Deserializer {
     }
 
     private static Object getRecordTypeValueFromMessage(DynamicMessage dynamicMessage, RecordType recordType) {
-
         // getEmptyValue method is used to set false value to boolean fields in the ballerina record
         // protobuf doesn't serialize false value in the protobuf message
         BMap<BString, Object> record = recordType.getEmptyValue();
@@ -304,7 +287,7 @@ public class Deserializer {
         FieldDescriptor fieldDescriptor;
         Object ballerinaValue;
 
-        for (var entry : dynamicMessage.getAllFields().entrySet()) {
+        for (Map.Entry<FieldDescriptor, Object> entry : dynamicMessage.getAllFields().entrySet()) {
             fieldDescriptor = entry.getKey();
             Object value = entry.getValue();
             String entryFieldName = fieldDescriptor.getName();
@@ -337,19 +320,16 @@ public class Deserializer {
                     String ballerinaTypeName = Utils.getElementTypeOfBallerinaArray(arrayType);
                     int dimention = Utils.getDimensions(arrayType);
 
-                    ballerinaValue = getArrayTypeValueFromMessage(
-                            value,
-                            arrayType.getElementType(),
-                            recordSchema,
-                            dimention,
-                            ballerinaTypeName);
+                    ballerinaValue =
+                            getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema, dimention,
+                                    ballerinaTypeName);
                     break;
                 }
 
                 case TypeTags.RECORD_TYPE_TAG: {
                     Object recordMessage = dynamicMessage.getField(fieldDescriptor);
-                    ballerinaValue = getRecordTypeValueFromMessage((DynamicMessage) recordMessage,
-                            (RecordType) entryFieldType);
+                    ballerinaValue =
+                            getRecordTypeValueFromMessage((DynamicMessage) recordMessage, (RecordType) entryFieldType);
                     break;
                 }
 
@@ -362,11 +342,10 @@ public class Deserializer {
     }
 
     private static RecordType getBallerinaRecordTypeFromUnion(UnionType unionType, String targetBallerinaTypeName) {
-
         RecordType targetRecordType = null;
 
-        for (var memberType : unionType.getMemberTypes()) {
-            if (memberType instanceof RecordType) {
+        for (Type memberType : unionType.getMemberTypes()) {
+            if (memberType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 String recordType = memberType.getName();
                 if (recordType.equals(targetBallerinaTypeName)) {
                     targetRecordType = (RecordType) memberType;
@@ -377,15 +356,12 @@ public class Deserializer {
         return targetRecordType;
     }
 
-    private static ArrayType getBallerinaArrayTypeFromUnion(
-            UnionType unionType,
-            String targetBallerinaTypeName,
-            int dimention) {
-
+    private static ArrayType getBallerinaArrayTypeFromUnion(UnionType unionType, String targetBallerinaTypeName,
+                                                            int dimention) {
         ArrayType targetArrayType = null;
 
-        for (var memberType : unionType.getMemberTypes()) {
-            if (memberType instanceof ArrayType) {
+        for (Type memberType : unionType.getMemberTypes()) {
+            if (memberType.getTag() == TypeTags.ARRAY_TAG) {
                 String arrayBasicType = Utils.getElementTypeOfBallerinaArray((ArrayType) memberType);
                 int arrayDimention = Utils.getDimensions((ArrayType) memberType);
                 if (arrayDimention == dimention && arrayBasicType.equals(targetBallerinaTypeName)) {

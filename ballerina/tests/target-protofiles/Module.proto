@@ -1,14 +1,9 @@
 syntax = "proto3";
 
 message Module {
-  message stars__UnionBuilder {
-     sint64 int__unionField  = 1;
+  message stars___UnionBuilder {
+     sint64 int___unionField  = 1;
      bool nullField  = 2;
-  }
-
-  message id__UnionBuilder {
-     sint64 int__unionField  = 1;
-     string string__unionField  = 2;
   }
 
   message Contributor {
@@ -16,8 +11,13 @@ message Module {
      string username  = 2;
   }
 
+  message id___UnionBuilder {
+     sint64 int___unionField  = 1;
+     string string___unionField  = 2;
+  }
+
    repeated Contributor contributors  = 1;
-   id__UnionBuilder id  = 2;
+   id___UnionBuilder id  = 2;
    string name  = 3;
-   stars__UnionBuilder stars  = 4;
+   stars___UnionBuilder stars  = 4;
 }
