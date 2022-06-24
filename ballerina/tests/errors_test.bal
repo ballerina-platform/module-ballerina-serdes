@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/test;
-import serdes.types_for_testing as types;
 
 type EmployeeTable table<map<anydata>>;
 
@@ -65,17 +64,6 @@ public isolated function testRecordTypeMismatch() returns error? {
     test:assertTrue(encoded is Error);
     Error err = <Error> encoded;
     test:assertEquals(err.message(), expected);
-}
-
-@test:Config {}
-public function testDeserializationError() returns error? {
-    Proto3Schema ser = check new Proto3Schema(RecordWithMultidimentionalArrays);
-    RecordWithMultidimentionalArrays data = {string3DArray:[[["serdes"]]], decimal2DArray: [[3.45d],[4e3]]};
-    byte[] enc = check ser.serialize(data);
-
-    Proto3Schema des = check  new Proto3Schema(types:RecordWithMultidimentionalArrays);
-    types:RecordWithMultidimentionalArrays|Error dec = des.deserialize(enc);
-    test:assertTrue(dec is Error);
 }
 
 type MapA map<int>;
