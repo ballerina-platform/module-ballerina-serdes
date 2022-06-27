@@ -96,8 +96,8 @@ public class SchemaGenerator {
     public static Object generateSchema(BObject serdes, BTypedesc bTypedesc) {
         try {
             ProtobufFileBuilder protobufFile = new ProtobufFileBuilder();
-            ProtobufMessageBuilder protobufMessageBuilder = buildProtobufMessageFromBallerinaTypedesc(
-                    bTypedesc.getDescribingType());
+            ProtobufMessageBuilder protobufMessageBuilder =
+                    buildProtobufMessageFromBallerinaTypedesc(bTypedesc.getDescribingType());
             Descriptor messageDescriptor = protobufFile.addMessageType(protobufMessageBuilder).build();
             serdes.addNativeData(SCHEMA_NAME, messageDescriptor);
             serdes.addNativeData(PROTO3, protobufFile.toString());
