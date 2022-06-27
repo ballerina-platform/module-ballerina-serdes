@@ -324,9 +324,8 @@ public class Serializer {
                     Descriptor nestedSchema = fieldDescriptor.getMessageType();
                     Builder nestedMessageBuilder = DynamicMessage.newBuilder(nestedSchema);
                     @SuppressWarnings("unchecked") BMap<BString, Object> ballerinaMap = (BMap<BString, Object>) element;
-                    DynamicMessage recordMessage = generateMessageForMapType(nestedMessageBuilder,
-                            ballerinaMap).build();
-                    messageBuilder.addRepeatedField(fieldDescriptor, recordMessage);
+                    DynamicMessage mapMessage = generateMessageForMapType(nestedMessageBuilder, ballerinaMap).build();
+                    messageBuilder.addRepeatedField(fieldDescriptor, mapMessage);
                     break;
                 }
 
