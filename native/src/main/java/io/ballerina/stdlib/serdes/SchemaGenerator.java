@@ -471,7 +471,7 @@ public class SchemaGenerator {
                     throw createSerdesError(ARRAY_OF_MAP_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
                 }
 
-                String nestedMessageName = elementType.getName();
+                String nestedMessageName = MAP_BUILDER;
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
                 generateMessageDefinitionForMapType(nestedMessageBuilder, mapType);
                 messageBuilder.addNestedMessage(nestedMessageBuilder);
