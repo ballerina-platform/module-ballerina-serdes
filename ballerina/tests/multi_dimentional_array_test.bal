@@ -28,7 +28,6 @@ type Byte5DArray byte[][][][][];
 
 type Decimal3DArray DecimalArray[][];
 
-
 type TestMember record {
     string fullName;
     int id;
@@ -39,6 +38,10 @@ type Level3Array UnionType[];
 type Level2Array Level3Array[];
 // Complex array
 type Level1Array Level2Array[];
+
+type AgeMap map<int>;
+type AgeMapArray AgeMap[];
+type AgeMap2DArray AgeMapArray[];
 
 @test:Config {}
 public isolated function testInt2DArray() returns error? {
@@ -167,4 +170,28 @@ public isolated function testNestedArrayWithUnionFields() returns error? {
     Proto3Schema des = check new (Level1Array);
     Level1Array decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, level2Array);
+}
+
+@test:Config {}
+public isolated function testArrayofMaps() returns error? {
+    AgeMapArray data = [{"Tony Hoare": 88},{"Linus Torvalds": 52}];
+
+    Proto3Schema ser = check new (AgeMapArray);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (AgeMapArray);
+    AgeMapArray decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function test2DArrayofMaps() returns error? {
+    AgeMap2DArray data = [[{"Tony Hoare": 88}],[{"Linus Torvalds": 52}]];
+
+    Proto3Schema ser = check new (AgeMap2DArray);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (AgeMap2DArray);
+    AgeMap2DArray decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
 }

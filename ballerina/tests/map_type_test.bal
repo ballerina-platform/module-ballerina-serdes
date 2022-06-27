@@ -7,6 +7,22 @@ type MapByte map<byte>;
 type MapDecimal map<decimal>;
 type MapBoolean map<boolean>;
 
+type IntMatrix int[][];
+type MapArray map<IntMatrix>;
+
+type Status record {
+    int code;
+    string message?;
+};
+
+type MapRecord map<Status>;
+type MapUnion map<Status|IntMatrix>;
+type MapOfMaps map<MapUnion>;
+
+type RecordWithMapField record {
+    AgeMap ages;
+};
+
 @test:Config{}
 public isolated function testMapInt() returns error? {
 
@@ -111,6 +127,94 @@ public isolated function testMapBoolean() returns error? {
 
     Proto3Schema des = check new(MapBoolean);
     MapBoolean decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapArray() returns error? {
+
+    MapArray data = {
+        "age groups" : [[0,10],[11,20],[21,30],[31, 60]]
+    };
+
+    Proto3Schema ser = check new(MapArray);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapArray);
+    MapArray decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapRecord() returns error? {
+
+    MapRecord data = {
+        "404" : {code: 404, message: "Not found"},
+        "405" : {code: 405, message: "Method Not Allowed"}
+    };
+
+    Proto3Schema ser = check new(MapRecord);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapRecord);
+    MapRecord decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapUnion() returns error? {
+
+    MapUnion data = {
+        "404" : {code: 404, message: "Not found"},
+        "age groups" : [[0,10],[11,20],[21,30],[31, 60]]
+    };
+
+    Proto3Schema ser = check new(MapUnion);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapUnion);
+    MapUnion decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapOfMaps() returns error? {
+
+    MapOfMaps data = {
+        "status": {
+            "404": {code: 404, message: "Not found"},
+            "405" : {code: 405, message: "Method Not Allowed"}
+        },
+        "matrix": {
+            "age groups": [[0, 10], [11, 20], [21, 30], [31, 60]]
+        }
+    };
+
+    Proto3Schema ser = check new(MapOfMaps);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapOfMaps);
+    MapOfMaps decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapFieldinRecord() returns error? {
+
+    RecordWithMapField data = {
+        ages: {"Tony Hoare": 88}
+    };
+
+    Proto3Schema ser = check new(RecordWithMapField);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(RecordWithMapField);
+    RecordWithMapField decode = check des.deserialize(encode);
 
     test:assertEquals(decode, data);
 }

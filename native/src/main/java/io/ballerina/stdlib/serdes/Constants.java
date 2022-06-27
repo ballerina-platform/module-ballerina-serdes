@@ -55,7 +55,7 @@ public final class Constants {
     public static final String SYNTAX = "syntax";
     public static final String MAP_BUILDER = "MapBuilder";
     public static final String MAP_FIELD_ENTRY = "MapFieldEntry";
-    public static final String MAP_FIELD = "map_field";
+    public static final String MAP_FIELD = "mapField";
     public static final String KEY_NAME = "key";
     public static final String VALUE_NAME = "value";
 
@@ -78,5 +78,10 @@ public final class Constants {
     public static final String TYPE_MISMATCH_ERROR_MESSAGE = "Type mismatch";
     public static final String SCHEMA_GENERATION_FAILURE = "Failed to generate schema: ";
     public static final String FAILED_WRITE_FILE = "Failed to write proto file: ";
+    public static final String MAP_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support map type as union member";
+    public static final String ARRAY_OF_MAP_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support array of maps as union "
+            + "member";
+    public static final String RECORD_FIELD_OF_MAP_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field of map type "
+            + "only supported with reference map type";
     public static final BString BALLERINA_TYPEDESC_ATTRIBUTE_NAME = StringUtils.fromString("dataType");
 }
