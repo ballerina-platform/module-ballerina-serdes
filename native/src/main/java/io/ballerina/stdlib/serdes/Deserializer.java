@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
@@ -50,6 +51,8 @@ import static io.ballerina.stdlib.serdes.Constants.ATOMIC_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.BALLERINA_TYPEDESC_ATTRIBUTE_NAME;
 import static io.ballerina.stdlib.serdes.Constants.DECIMAL_VALUE;
 import static io.ballerina.stdlib.serdes.Constants.DESERIALIZATION_ERROR_MESSAGE;
+import static io.ballerina.stdlib.serdes.Constants.KEY_NAME;
+import static io.ballerina.stdlib.serdes.Constants.MAP_FIELD;
 import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
@@ -58,6 +61,7 @@ import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UNSUPPORTED_DATA_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE;
+import static io.ballerina.stdlib.serdes.Constants.VALUE_NAME;
 import static io.ballerina.stdlib.serdes.Utils.SERDES_ERROR;
 import static io.ballerina.stdlib.serdes.Utils.createSerdesError;
 
@@ -119,6 +123,10 @@ public class Deserializer {
 
             case TypeTags.RECORD_TYPE_TAG: {
                 return getRecordTypeValueFromMessage(dynamicMessage, (RecordType) ballerinaType);
+            }
+
+            case TypeTags.MAP_TAG: {
+                return getMapTypeValueFromMessage(dynamicMessage, (MapType) ballerinaType);
             }
 
             default:
@@ -339,6 +347,76 @@ public class Deserializer {
             record.put(StringUtils.fromString(entryFieldName), ballerinaValue);
         }
         return record;
+    }
+
+
+    private static Object getMapTypeValueFromMessage(DynamicMessage dynamicMessage, MapType mapType) {
+        BMap<BString, Object> ballerinaMap = ValueCreator.createMapValue(mapType);
+
+        Type constrainedType = mapType.getConstrainedType();
+        FieldDescriptor mapFieldDescriptor = dynamicMessage.getDescriptorForType().findFieldByName(MAP_FIELD);
+        Collection<?> mapEntries = (Collection<?>) dynamicMessage.getField(mapFieldDescriptor);
+
+        Object ballerinaValue;
+
+        for (var mapEntry : mapEntries) {
+            DynamicMessage mapEntryMessage = (DynamicMessage) mapEntry;
+            Descriptor mapEntryMessageDescriptor = mapEntryMessage.getDescriptorForType();
+            FieldDescriptor keyFieldDescriptor = mapEntryMessageDescriptor.findFieldByName(KEY_NAME);
+            FieldDescriptor valueFieldDescriptor = mapEntryMessageDescriptor.findFieldByName(VALUE_NAME);
+
+            String key = (String) mapEntryMessage.getField(keyFieldDescriptor);
+            Object value = mapEntryMessage.getField(valueFieldDescriptor);
+
+            switch (constrainedType.getTag()) {
+                case TypeTags.INT_TAG:
+                case TypeTags.BYTE_TAG:
+                case TypeTags.FLOAT_TAG:
+                case TypeTags.STRING_TAG:
+                case TypeTags.BOOLEAN_TAG: {
+                    ballerinaValue = getPrimitiveTypeValueFromMessage(value);
+                    break;
+                }
+
+                case TypeTags.DECIMAL_TAG: {
+                    ballerinaValue = getDecimalPrimitiveTypeValueFromMessage((DynamicMessage) value);
+                    break;
+                }
+
+                case TypeTags.UNION_TAG: {
+                    ballerinaValue = getUnionTypeValueFromMessage((DynamicMessage) value, constrainedType);
+                    break;
+                }
+
+                case TypeTags.ARRAY_TAG: {
+                    ArrayType arrayType = (ArrayType) constrainedType;
+                    Descriptor recordSchema = valueFieldDescriptor.getContainingType();
+
+                    String ballerinaTypeName = Utils.getElementTypeOfBallerinaArray(arrayType);
+                    int dimention = Utils.getDimensions(arrayType);
+
+                    ballerinaValue = getArrayTypeValueFromMessage(
+                            value,
+                            arrayType.getElementType(),
+                            recordSchema,
+                            dimention,
+                            ballerinaTypeName);
+                    break;
+                }
+
+                case TypeTags.RECORD_TYPE_TAG: {
+                    Object recordMessage = dynamicMessage.getField(valueFieldDescriptor);
+                    ballerinaValue = getRecordTypeValueFromMessage((DynamicMessage) recordMessage,
+                            (RecordType) constrainedType);
+                    break;
+                }
+
+                default:
+                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + constrainedType.getName(), SERDES_ERROR);
+            }
+            ballerinaMap.put(StringUtils.fromString(key), ballerinaValue);
+        }
+        return ballerinaMap;
     }
 
     private static RecordType getBallerinaRecordTypeFromUnion(UnionType unionType, String targetBallerinaTypeName) {

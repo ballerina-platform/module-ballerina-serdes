@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BArray;
@@ -48,6 +49,8 @@ import static io.ballerina.stdlib.serdes.Constants.BYTE;
 import static io.ballerina.stdlib.serdes.Constants.DECIMAL;
 import static io.ballerina.stdlib.serdes.Constants.EMPTY_STRING;
 import static io.ballerina.stdlib.serdes.Constants.INTEGER;
+import static io.ballerina.stdlib.serdes.Constants.KEY_NAME;
+import static io.ballerina.stdlib.serdes.Constants.MAP_FIELD;
 import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
@@ -60,6 +63,7 @@ import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UNION_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.UNSUPPORTED_DATA_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE;
+import static io.ballerina.stdlib.serdes.Constants.VALUE_NAME;
 import static io.ballerina.stdlib.serdes.Utils.SERDES_ERROR;
 import static io.ballerina.stdlib.serdes.Utils.createSerdesError;
 
@@ -123,6 +127,12 @@ public class Serializer {
             case TypeTags.RECORD_TYPE_TAG: {
                 @SuppressWarnings("unchecked") BMap<BString, Object> record = (BMap<BString, Object>) anydata;
                 return generateMessageForRecordType(messageBuilder, record);
+            }
+
+            case TypeTags.MAP_TAG: {
+                @SuppressWarnings("unchecked")
+                BMap<BString, Object> ballerinaMap = (BMap<BString, Object>) anydata;
+                return generateMessageForMapType(messageBuilder, ballerinaMap);
             }
 
             default:
@@ -373,6 +383,90 @@ public class Serializer {
 
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + recordFieldType.getName(), SERDES_ERROR);
+            }
+        }
+        return messageBuilder;
+    }
+
+
+    private static Builder generateMessageForMapType(Builder messageBuilder, BMap<BString, Object> ballerinaMap) {
+
+        Descriptor schema = messageBuilder.getDescriptorForType();
+        MapType mapType = (MapType) ballerinaMap.getType();
+        Type constrainedType = mapType.getConstrainedType();
+
+        FieldDescriptor mapFieldDescriptor = schema.findFieldByName(MAP_FIELD);
+        Descriptor mapEntryDescriptor = mapFieldDescriptor.getMessageType();
+        FieldDescriptor keyFieldDescriptor = mapEntryDescriptor.findFieldByName(KEY_NAME);
+        FieldDescriptor valueFieldDescriptor = mapEntryDescriptor.findFieldByName(VALUE_NAME);
+
+        Builder mapFieldMessage = DynamicMessage.newBuilder(mapEntryDescriptor);
+
+        for (var recordField : ballerinaMap.entrySet()) {
+            String keyName = recordField.getKey().getValue();
+            Object value = recordField.getValue();
+
+            mapFieldMessage.setField(keyFieldDescriptor, keyName);
+
+            switch (constrainedType.getTag()) {
+                case TypeTags.INT_TAG:
+                case TypeTags.FLOAT_TAG:
+                case TypeTags.BOOLEAN_TAG:
+                case TypeTags.BYTE_TAG:
+                case TypeTags.STRING_TAG: {
+                    generateMessageForPrimitiveType(
+                            mapFieldMessage,
+                            valueFieldDescriptor,
+                            value,
+                            constrainedType.getName());
+                    messageBuilder.addRepeatedField(mapFieldDescriptor, mapFieldMessage.build());
+                    break;
+                }
+
+                case TypeTags.DECIMAL_TAG: {
+                    Descriptor decimalSchema = valueFieldDescriptor.getMessageType();
+                    Builder decimalMessageBuilder = DynamicMessage.newBuilder(decimalSchema);
+                    DynamicMessage decimalMessage = generateMessageForPrimitiveDecimalType(
+                            decimalMessageBuilder,
+                            value,
+                            decimalSchema)
+                            .build();
+                    mapFieldMessage.setField(valueFieldDescriptor, decimalMessage);
+                    messageBuilder.addRepeatedField(mapFieldDescriptor, mapFieldMessage.build());
+                    break;
+                }
+
+                case TypeTags.UNION_TAG: {
+                    Descriptor nestedUnionSchema = valueFieldDescriptor.getMessageType();
+                    Builder nestedMessageBuilder = DynamicMessage.newBuilder(nestedUnionSchema);
+                    DynamicMessage nestedUnionMessage = generateMessageForUnionType(
+                            nestedMessageBuilder,
+                            value)
+                            .build();
+                    mapFieldMessage.setField(valueFieldDescriptor, nestedUnionMessage);
+                    messageBuilder.addRepeatedField(mapFieldDescriptor, mapFieldMessage.build());
+                    break;
+                }
+
+                case TypeTags.ARRAY_TAG: {
+                    generateMessageForArrayType(mapFieldMessage, valueFieldDescriptor, (BArray) value);
+                    messageBuilder.addRepeatedField(mapFieldDescriptor, mapFieldMessage.build());
+                    break;
+                }
+
+                case TypeTags.RECORD_TYPE_TAG: {
+                    @SuppressWarnings("unchecked")
+                    BMap<BString, Object> nestedRecord = (BMap<BString, Object>) value;
+                    Builder recordBuilder = DynamicMessage.newBuilder(valueFieldDescriptor.getMessageType());
+                    DynamicMessage nestedRecordMessage = generateMessageForRecordType(recordBuilder, nestedRecord)
+                            .build();
+                    mapFieldMessage.setField(valueFieldDescriptor, nestedRecordMessage);
+                    messageBuilder.setField(mapFieldDescriptor, mapFieldMessage.build());
+                    break;
+                }
+
+                default:
+                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + constrainedType.getName(), SERDES_ERROR);
             }
         }
         return messageBuilder;

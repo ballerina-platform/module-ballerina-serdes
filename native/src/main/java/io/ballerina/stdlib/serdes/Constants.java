@@ -53,6 +53,11 @@ public final class Constants {
     public static final String PRECISION = "precision";
     public static final String VALUE = "value";
     public static final String SYNTAX = "syntax";
+    public static final String MAP_BUILDER = "MapBuilder";
+    public static final String MAP_FIELD_ENTRY = "MapFieldEntry";
+    public static final String MAP_FIELD = "map_field";
+    public static final String KEY_NAME = "key";
+    public static final String VALUE_NAME = "value";
 
     public static final String SEPARATOR = "_";
     public static final String TYPE_SEPARATOR = "___";
