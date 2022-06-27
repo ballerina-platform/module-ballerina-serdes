@@ -46,8 +46,8 @@ type UnionMember record {
 };
 
 type UnionWithRecord int|string[]|UnionMember|();
-
 type CompleUnion UnionOfPrimitiveAndArrays|UnionOfUnionArray|UnionWithRecord;
+type UnionWithArrayOfMaps MapString[]|MapInt[];
 
 @test:Config {}
 public isolated function testPrimitiveUnion() returns error? {
@@ -146,4 +146,3 @@ public isolated function testComplexUnion() returns error? {
     CompleUnion decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, member);
 }
-
