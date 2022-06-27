@@ -386,16 +386,16 @@ public class Serializer {
                 case TypeTags.RECORD_TYPE_TAG: {
                     @SuppressWarnings("unchecked") BMap<BString, Object> nestedRecord
                             = (BMap<BString, Object>) recordFieldValue;
-                    Builder recordBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
-                    DynamicMessage nestedMessage = generateMessageForRecordType(recordBuilder, nestedRecord).build();
+                    Builder mapBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
+                    DynamicMessage nestedMessage = generateMessageForRecordType(mapBuilder, nestedRecord).build();
                     messageBuilder.setField(fieldDescriptor, nestedMessage);
                     break;
                 }
 
                 case TypeTags.MAP_TAG: {
                     @SuppressWarnings("unchecked") BMap<BString, Object> map = (BMap<BString, Object>) recordFieldValue;
-                    Builder recordBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
-                    DynamicMessage nestedMessage = generateMessageForMapType(recordBuilder, map).build();
+                    Builder mapBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
+                    DynamicMessage nestedMessage = generateMessageForMapType(mapBuilder, map).build();
                     messageBuilder.setField(fieldDescriptor, nestedMessage);
                     break;
                 }
@@ -478,8 +478,8 @@ public class Serializer {
 
                 case TypeTags.MAP_TAG: {
                     @SuppressWarnings("unchecked") BMap<BString, Object> nestedMap = (BMap<BString, Object>) value;
-                    Builder recordBuilder = DynamicMessage.newBuilder(valueFieldDescriptor.getMessageType());
-                    DynamicMessage nestedMapMessage = generateMessageForMapType(recordBuilder, nestedMap).build();
+                    Builder mapBuilder = DynamicMessage.newBuilder(valueFieldDescriptor.getMessageType());
+                    DynamicMessage nestedMapMessage = generateMessageForMapType(mapBuilder, nestedMap).build();
                     mapFieldMessage.setField(valueFieldDescriptor, nestedMapMessage);
                     messageBuilder.addRepeatedField(mapFieldDescriptor, mapFieldMessage.build());
                     break;
