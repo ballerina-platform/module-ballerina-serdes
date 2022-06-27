@@ -24,7 +24,9 @@ import io.ballerina.runtime.api.values.BString;
 /**
  * Constant variable for serdes related operations.
  */
-public class Constants {
+public final class Constants {
+
+    private Constants() {}
 
     public static final String EMPTY_STRING = "";
 

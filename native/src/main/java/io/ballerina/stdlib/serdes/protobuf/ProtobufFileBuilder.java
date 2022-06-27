@@ -53,8 +53,6 @@ public class ProtobufFileBuilder {
 
     @Override
     public String toString() {
-        return SYNTAX + " = \"" + fileDescProtoBuilder.getSyntax() + "\";"
-                + "\n\n"
-                + protobufMessage;
+        return SYNTAX + " = \"" + fileDescProtoBuilder.getSyntax() + "\";" + "\n\n" + protobufMessage;
     }
 }

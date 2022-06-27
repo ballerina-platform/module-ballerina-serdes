@@ -55,6 +55,9 @@ public class ProtobufMessageFieldProperties {
         fieldLabels.put("repeated", Label.LABEL_REPEATED);
     }
 
+    private ProtobufMessageFieldProperties() {
+    }
+
     public static Type getFieldType(String type) {
         return fieldNameToTypes.get(type);
     }
