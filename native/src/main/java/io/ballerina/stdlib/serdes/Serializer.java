@@ -423,9 +423,9 @@ public class Serializer {
 
         Builder mapFieldMessage = DynamicMessage.newBuilder(mapEntryDescriptor);
 
-        for (var recordField : ballerinaMap.entrySet()) {
-            String keyName = recordField.getKey().getValue();
-            Object value = recordField.getValue();
+        for (Map.Entry<BString, Object> mapEntry : ballerinaMap.entrySet()) {
+            String keyName = mapEntry.getKey().getValue();
+            Object value = mapEntry.getValue();
 
             mapFieldMessage.setField(keyFieldDescriptor, keyName);
 
