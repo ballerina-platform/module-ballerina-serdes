@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -38,6 +39,7 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTable;
 import io.ballerina.runtime.api.values.BTypedesc;
 
 import java.math.BigDecimal;
@@ -59,6 +61,7 @@ import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_NAME;
 import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
+import static io.ballerina.stdlib.serdes.Constants.TABLE_ENTRY;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UNSUPPORTED_DATA_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE;
@@ -130,6 +133,10 @@ public class Deserializer {
 
             case TypeTags.MAP_TAG: {
                 return getMapTypeValueFromMessage(dynamicMessage, (MapType) referredType);
+            }
+
+            case TypeTags.TABLE_TAG: {
+                return getTableTypeValueFromMessage(dynamicMessage, (TableType) referredType);
             }
 
             default:
@@ -290,6 +297,13 @@ public class Deserializer {
                     break;
                 }
 
+                case TypeTags.TABLE_TAG: {
+                    TableType tableType = (TableType) referredElementType;
+                    Object map = getTableTypeValueFromMessage((DynamicMessage) element, tableType);
+                    bArray.append(map);
+                    break;
+                }
+
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredElementType.getName(), SERDES_ERROR);
             }
@@ -354,6 +368,13 @@ public class Deserializer {
                     Object mapMessage = dynamicMessage.getField(fieldDescriptor);
                     ballerinaValue = getMapTypeValueFromMessage((DynamicMessage) mapMessage,
                             (MapType) referredEntryFieldType);
+                    break;
+                }
+
+                case TypeTags.TABLE_TAG: {
+                    Object tableMessage = dynamicMessage.getField(fieldDescriptor);
+                    ballerinaValue = getTableTypeValueFromMessage((DynamicMessage) tableMessage,
+                            (TableType) referredEntryFieldType);
                     break;
                 }
 
@@ -429,12 +450,52 @@ public class Deserializer {
                     break;
                 }
 
+                case TypeTags.TABLE_TAG: {
+                    ballerinaValue = getTableTypeValueFromMessage((DynamicMessage) value,
+                            (TableType) referredConstrainedType);
+                    break;
+                }
+
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
             }
             ballerinaMap.put(StringUtils.fromString(key), ballerinaValue);
         }
         return ballerinaMap;
+    }
+
+    private static Object getTableTypeValueFromMessage(DynamicMessage dynamicMessage, TableType tableType) {
+        BTable table = ValueCreator.createTableValue(tableType);
+
+        Type constrainedType = tableType.getConstrainedType();
+        Type referredConstrainedType = TypeUtils.getReferredType(constrainedType);
+
+        FieldDescriptor tableEntryFieldDescriptor = dynamicMessage.getDescriptorForType().findFieldByName(TABLE_ENTRY);
+        Collection<?> tableEntries = (Collection<?>) dynamicMessage.getField(tableEntryFieldDescriptor);
+
+        for (Object tableEntry : tableEntries) {
+            DynamicMessage tableEntryMessage = (DynamicMessage) tableEntry;
+            Object ballerinaValue;
+
+            switch (referredConstrainedType.getTag()) {
+                case TypeTags.RECORD_TYPE_TAG: {
+                    ballerinaValue = getRecordTypeValueFromMessage(tableEntryMessage,
+                            (RecordType) referredConstrainedType);
+                    break;
+                }
+
+                case TypeTags.MAP_TAG: {
+                    ballerinaValue = getMapTypeValueFromMessage(tableEntryMessage, (MapType) referredConstrainedType);
+                    break;
+                }
+
+                default:
+                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
+
+            }
+            table.add(ballerinaValue);
+        }
+        return table;
     }
 
     private static RecordType getBallerinaRecordTypeFromUnion(UnionType unionType, String targetBallerinaTypeName) {

@@ -38,7 +38,7 @@ public final class Constants {
 
     // Constants related to java type
     public static final String INTEGER = "Integer";
-
+    
     // Constants related to protobuf schema
     public static final String SCHEMA_NAME = "schema";
     public static final String UNION_BUILDER_NAME = "UnionBuilder";
@@ -58,6 +58,8 @@ public final class Constants {
     public static final String MAP_FIELD = "mapField";
     public static final String KEY_NAME = "key";
     public static final String VALUE_NAME = "value";
+    public static final String TABLE_BUILDER = "TableBuilder";
+    public static final String TABLE_ENTRY = "TableEntry";
 
     public static final String SEPARATOR = "_";
     public static final String TYPE_SEPARATOR = "___";
@@ -79,9 +81,14 @@ public final class Constants {
     public static final String SCHEMA_GENERATION_FAILURE = "Failed to generate schema: ";
     public static final String FAILED_WRITE_FILE = "Failed to write proto file: ";
     public static final String MAP_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support map type as union member";
-    public static final String ARRAY_OF_MAP_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support array of maps as union "
-            + "member";
+    public static final String TABLE_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support table type as union member";
+    public static final String ARRAY_OF_MAP_AS_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support array of maps as"
+            + " union member";
+    public static final String ARRAY_OF_TABLE_AS_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support array of tables as "
+            + "union member";
     public static final String RECORD_FIELD_OF_MAP_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field of map type "
             + "only supported with reference map type";
+    public static final String RECORD_FIELD_OF_TABLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field of table type "
+            + "only supported with reference table type";
     public static final BString BALLERINA_TYPEDESC_ATTRIBUTE_NAME = StringUtils.fromString("dataType");
 }

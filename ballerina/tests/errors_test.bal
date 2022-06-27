@@ -20,7 +20,7 @@ type EmployeeTable table<map<anydata>>;
 
 @test:Config{}
 public isolated function testUnsupportedDataType() returns error? {
-    string expected = "Unsupported data type: table";
+    string expected = "Unsupported data type: anydata";
 
     Proto3Schema|error ser = new(EmployeeTable);
     
@@ -101,6 +101,49 @@ public isolated function testRecordWithNonReferencedMapFieldError() returns erro
     string expectedErrorMsg = "Record field of map type only supported with reference map type";
 
     Proto3Schema|error ser = new(RecordWithNonReferencedMapField);
+    
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
+}
+
+type RecordWithNonReferencedTableField record {
+    table<map<int>> ages;
+};
+
+@test:Config {}
+public isolated function testRecordWithNonReferencedTableFieldError() returns error? {
+    string expectedErrorMsg = "Record field of table type only supported with reference table type";
+
+    Proto3Schema|error ser = new(RecordWithNonReferencedTableField);
+    
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
+}
+
+type TableA table<map<int>>;
+type TableB map<float>;
+type UnionOfTables TableA|TableA;
+
+@test:Config {}
+public function testTableUnionMemberNotYetSupporteError() returns error? {
+    string expectedErrorMsg = "Serdes not yet support table type as union member";
+
+    Proto3Schema|error ser = new(UnionOfTables);
+    
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
+}
+
+type UnionWithArrayOfTables TableA[]|TableB[][];
+
+@test:Config {}
+public isolated function testTableArrayUnionMemberNotYetSupporteError() returns error? {
+    string expectedErrorMsg = "Serdes not yet support array of tables as union member";
+
+    Proto3Schema|error ser = new(UnionWithArrayOfTables);
     
     test:assertTrue(ser is Error);
     Error err = <Error> ser;

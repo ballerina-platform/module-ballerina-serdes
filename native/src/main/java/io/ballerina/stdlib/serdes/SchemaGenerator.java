@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -47,7 +48,8 @@ import static com.google.protobuf.Descriptors.Descriptor;
 import static com.google.protobuf.Descriptors.DescriptorValidationException;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_BUILDER_NAME;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_FIELD_NAME;
-import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_MAP_MEMBER_NOT_YET_SUPPORTED;
+import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_MAP_AS_MEMBER_NOT_YET_SUPPORTED;
+import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_TABLE_AS_MEMBER_NOT_YET_SUPPORTED;
 import static io.ballerina.stdlib.serdes.Constants.ATOMIC_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.BOOL;
 import static io.ballerina.stdlib.serdes.Constants.BYTES;
@@ -64,12 +66,15 @@ import static io.ballerina.stdlib.serdes.Constants.OPTIONAL_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.PROTO3;
 import static io.ballerina.stdlib.serdes.Constants.RECORD_FIELD_OF_MAP_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
+import static io.ballerina.stdlib.serdes.Constants.RECORD_FIELD_OF_TABLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.REPEATED_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_GENERATION_FAILURE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_NAME;
 import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.STRING;
+import static io.ballerina.stdlib.serdes.Constants.TABLE_BUILDER;
+import static io.ballerina.stdlib.serdes.Constants.TABLE_ENTRY;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UINT32;
 import static io.ballerina.stdlib.serdes.Constants.UNION_BUILDER_NAME;
@@ -96,8 +101,8 @@ public class SchemaGenerator {
     public static Object generateSchema(BObject serdes, BTypedesc bTypedesc) {
         try {
             ProtobufFileBuilder protobufFile = new ProtobufFileBuilder();
-            ProtobufMessageBuilder protobufMessageBuilder =
-                    buildProtobufMessageFromBallerinaTypedesc(bTypedesc.getDescribingType());
+            ProtobufMessageBuilder protobufMessageBuilder = buildProtobufMessageFromBallerinaTypedesc(
+                    bTypedesc.getDescribingType());
             Descriptor messageDescriptor = protobufFile.addMessageType(protobufMessageBuilder).build();
             serdes.addNativeData(SCHEMA_NAME, messageDescriptor);
             serdes.addNativeData(PROTO3, protobufFile.toString());
@@ -182,6 +187,14 @@ public class SchemaGenerator {
                 break;
             }
 
+            case TypeTags.TABLE_TAG: {
+                TableType tableType = (TableType) referredType;
+                messageName = Constants.TABLE_BUILDER;
+                messageBuilder = new ProtobufMessageBuilder(messageName);
+                generateMessageDefinitionForTableType(messageBuilder, tableType);
+                break;
+            }
+
             default:
                 throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredType.getName(), SERDES_ERROR);
         }
@@ -243,6 +256,11 @@ public class SchemaGenerator {
         if (referredType.getTag() == TypeTags.MAP_TAG) {
             // TODO: support map member
             throw createSerdesError(MAP_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
+        }
+
+        if (referredType.getTag() == TypeTags.TABLE_TAG) {
+            // TODO: support table member
+            throw createSerdesError(Constants.TABLE_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
         }
 
         throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredType.getName(), SERDES_ERROR);
@@ -327,6 +345,7 @@ public class SchemaGenerator {
                 }
 
                 // TODO: support map member
+                // TODO: support table member
 
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredMemberType.getName(), SERDES_ERROR);
@@ -429,8 +448,8 @@ public class SchemaGenerator {
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
                 }
 
-                ProtobufMessageBuilder nestedMessageBuilder =
-                        new ProtobufMessageBuilder(nestedMessageName, messageBuilder);
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
+                        messageBuilder);
                 generateMessageDefinitionForArrayType(nestedMessageBuilder, nestedArrayType, ARRAY_FIELD_NAME, 1);
                 messageBuilder.addNestedMessage(nestedMessageBuilder);
 
@@ -468,12 +487,31 @@ public class SchemaGenerator {
 
                 if (isUnionMember) {
                     // TODO: support array of map union member
-                    throw createSerdesError(ARRAY_OF_MAP_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
+                    throw createSerdesError(ARRAY_OF_MAP_AS_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
                 }
 
                 String nestedMessageName = MAP_BUILDER;
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
                 generateMessageDefinitionForMapType(nestedMessageBuilder, mapType);
+                messageBuilder.addNestedMessage(nestedMessageBuilder);
+
+                ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(REPEATED_LABEL,
+                        nestedMessageName, fieldName, fieldNumber);
+                messageBuilder.addField(messageField);
+                break;
+            }
+
+            case TypeTags.TABLE_TAG: {
+                TableType tableType = (TableType) referredElementType;
+
+                if (isUnionMember) {
+                    // TODO: support array of table union member
+                    throw createSerdesError(ARRAY_OF_TABLE_AS_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
+                }
+
+                String nestedMessageName = TABLE_BUILDER;
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
+                generateMessageDefinitionForTableType(nestedMessageBuilder, tableType);
                 messageBuilder.addNestedMessage(nestedMessageBuilder);
 
                 ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(REPEATED_LABEL,
@@ -575,6 +613,23 @@ public class SchemaGenerator {
                     ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
                             messageBuilder);
                     generateMessageDefinitionForMapType(nestedMessageBuilder, (MapType) referredFieldEntryType);
+                    messageBuilder.addNestedMessage(nestedMessageBuilder);
+
+                    ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
+                            nestedMessageName, fieldEntryName, fieldNumber);
+                    messageBuilder.addField(messageField);
+                    break;
+                }
+
+                case TypeTags.TABLE_TAG: {
+                    if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                        throw createSerdesError(RECORD_FIELD_OF_TABLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE, SERDES_ERROR);
+                    }
+
+                    String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + TABLE_BUILDER;
+                    ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
+                            messageBuilder);
+                    generateMessageDefinitionForTableType(nestedMessageBuilder, (TableType) referredFieldEntryType);
                     messageBuilder.addNestedMessage(nestedMessageBuilder);
 
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
@@ -685,6 +740,21 @@ public class SchemaGenerator {
                 break;
             }
 
+            case TypeTags.TABLE_TAG: {
+                TableType tableType = (TableType) constrainedType;
+                String nestedMessageName = TABLE_BUILDER;
+
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
+                        mapEntryBuilder);
+                generateMessageDefinitionForTableType(nestedMessageBuilder, tableType);
+                mapEntryBuilder.addNestedMessage(nestedMessageBuilder);
+
+                ProtobufMessageFieldBuilder valueField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
+                        nestedMessageName, VALUE_NAME, valueFieldNumber);
+                mapEntryBuilder.addField(valueField);
+                break;
+            }
+
             default:
                 throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
         }
@@ -693,5 +763,48 @@ public class SchemaGenerator {
         ProtobufMessageFieldBuilder mapEntryField = new ProtobufMessageFieldBuilder(REPEATED_LABEL, MAP_FIELD_ENTRY,
                 MAP_FIELD, 1);
         messageBuilder.addField(mapEntryField);
+    }
+
+    private static void generateMessageDefinitionForTableType(ProtobufMessageBuilder messageBuilder,
+                                                              TableType tableType) {
+        int entryFieldNumber = 1;
+        Type constrainedType = tableType.getConstrainedType();
+        Type referredConstrainedType = TypeUtils.getReferredType(constrainedType);
+
+        switch (referredConstrainedType.getTag()) {
+            case TypeTags.RECORD_TYPE_TAG: {
+                RecordType nestedRecordType = (RecordType) referredConstrainedType;
+                String nestedMessageName = nestedRecordType.getName();
+
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
+                        messageBuilder);
+                generateMessageDefinitionForRecordType(nestedMessageBuilder, nestedRecordType);
+                messageBuilder.addNestedMessage(nestedMessageBuilder);
+
+                ProtobufMessageFieldBuilder valueField = new ProtobufMessageFieldBuilder(REPEATED_LABEL,
+                        nestedMessageName, TABLE_ENTRY, entryFieldNumber);
+                messageBuilder.addField(valueField);
+                break;
+            }
+
+            case TypeTags.MAP_TAG: {
+                MapType nestedMapType = (MapType) constrainedType;
+                String nestedMessageName = MAP_BUILDER;
+
+                ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
+                        messageBuilder);
+                generateMessageDefinitionForMapType(nestedMessageBuilder, nestedMapType);
+                messageBuilder.addNestedMessage(nestedMessageBuilder);
+
+                ProtobufMessageFieldBuilder valueField = new ProtobufMessageFieldBuilder(REPEATED_LABEL,
+                        nestedMessageName, TABLE_ENTRY, entryFieldNumber);
+                messageBuilder.addField(valueField);
+                break;
+            }
+
+            default:
+                throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
+        }
+
     }
 }

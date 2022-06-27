@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -36,6 +37,7 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTable;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BValue;
 import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
@@ -59,6 +61,7 @@ import static io.ballerina.stdlib.serdes.Constants.SCHEMA_NAME;
 import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.SERIALIZATION_ERROR_MESSAGE;
 import static io.ballerina.stdlib.serdes.Constants.STRING;
+import static io.ballerina.stdlib.serdes.Constants.TABLE_ENTRY;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_MISMATCH_ERROR_MESSAGE;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UNION_FIELD_NAME;
@@ -134,6 +137,11 @@ public class Serializer {
             case TypeTags.MAP_TAG: {
                 @SuppressWarnings("unchecked") BMap<BString, Object> ballerinaMap = (BMap<BString, Object>) anydata;
                 return generateMessageForMapType(messageBuilder, ballerinaMap);
+            }
+
+            case TypeTags.TABLE_TAG: {
+                BTable<?, ?> table = (BTable<?, ?>) anydata;
+                return generateMessageForTableType(messageBuilder, table);
             }
 
             default:
@@ -244,6 +252,7 @@ public class Serializer {
                 return messageBuilder;
             }
             // TODO: support map
+            // TODO: support table
         }
 
         BValue bValue = (BValue) anydata;
@@ -329,6 +338,15 @@ public class Serializer {
                     break;
                 }
 
+                case TypeTags.TABLE_TAG: {
+                    Descriptor nestedSchema = fieldDescriptor.getMessageType();
+                    Builder nestedMessageBuilder = DynamicMessage.newBuilder(nestedSchema);
+                    BTable<?, ?> table = (BTable<?, ?>) element;
+                    DynamicMessage tableMessage = generateMessageForTableType(nestedMessageBuilder, table).build();
+                    messageBuilder.addRepeatedField(fieldDescriptor, tableMessage);
+                    break;
+                }
+
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredElementType.getName(), SERDES_ERROR);
             }
@@ -396,6 +414,14 @@ public class Serializer {
                     @SuppressWarnings("unchecked") BMap<BString, Object> map = (BMap<BString, Object>) recordFieldValue;
                     Builder mapBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
                     DynamicMessage nestedMessage = generateMessageForMapType(mapBuilder, map).build();
+                    messageBuilder.setField(fieldDescriptor, nestedMessage);
+                    break;
+                }
+
+                case TypeTags.TABLE_TAG: {
+                    BTable<?, ?> table = (BTable<?, ?>) recordFieldValue;
+                    Builder tableBuilder = DynamicMessage.newBuilder(fieldDescriptor.getMessageType());
+                    DynamicMessage nestedMessage = generateMessageForTableType(tableBuilder, table).build();
                     messageBuilder.setField(fieldDescriptor, nestedMessage);
                     break;
                 }
@@ -485,9 +511,50 @@ public class Serializer {
                     break;
                 }
 
+                case TypeTags.TABLE_TAG: {
+                    BTable<?, ?> table = (BTable<?, ?>) value;
+                    Builder tableBuilder = DynamicMessage.newBuilder(valueFieldDescriptor.getMessageType());
+                    DynamicMessage nestedMapMessage = generateMessageForTableType(tableBuilder, table).build();
+                    mapFieldMessage.setField(valueFieldDescriptor, nestedMapMessage);
+                    messageBuilder.addRepeatedField(mapFieldDescriptor, mapFieldMessage.build());
+                    break;
+                }
+
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
             }
+        }
+        return messageBuilder;
+    }
+
+
+    private static Builder generateMessageForTableType(Builder messageBuilder, BTable<?, ?> table) {
+        Type constrainedType = ((TableType) TypeUtils.getType(table)).getConstrainedType();
+        Type referredConstrainedType = TypeUtils.getReferredType(constrainedType);
+        FieldDescriptor tableEntryField = messageBuilder.getDescriptorForType().findFieldByName(TABLE_ENTRY);
+        Descriptor tableEntrySchema = tableEntryField.getMessageType();
+
+        for (Object value : table.values()) {
+            @SuppressWarnings("unchecked") BMap<BString, Object> recordOrMap = (BMap<BString, Object>) value;
+            // Create a nested message for each entry
+            Builder nestedMessageBuilder = DynamicMessage.newBuilder(tableEntrySchema);
+
+            switch (constrainedType.getTag()) {
+                case TypeTags.RECORD_TYPE_TAG: {
+                    generateMessageForRecordType(nestedMessageBuilder, recordOrMap);
+                    break;
+                }
+
+                case TypeTags.MAP_TAG: {
+                    generateMessageForMapType(nestedMessageBuilder, recordOrMap);
+                    break;
+                }
+
+                default:
+                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
+
+            }
+            messageBuilder.addRepeatedField(tableEntryField, nestedMessageBuilder.build());
         }
         return messageBuilder;
     }
