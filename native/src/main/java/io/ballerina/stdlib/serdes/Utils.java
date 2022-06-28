@@ -20,8 +20,10 @@ package io.ballerina.stdlib.serdes;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 
@@ -51,13 +53,13 @@ public class Utils {
     }
 
     // Get the dimention of given array type
-    public static int getDimensions(ArrayType array) {
+    public static int getArrayDimensions(ArrayType array) {
         int dimension = 1;
-        String messageName = array.getElementType().getName();
+        Type basicElementType = array.getElementType();
 
-        while (messageName.equals(Constants.EMPTY_STRING)) {
+        while (basicElementType.getTag() == TypeTags.ARRAY_TAG) {
             array = (ArrayType) array.getElementType();
-            messageName = array.getElementType().getName();
+            basicElementType = array.getElementType();
             dimension++;
         }
 
@@ -65,14 +67,14 @@ public class Utils {
     }
 
     // Get the basic ballerina type of the given array
-    public static String getElementTypeOfBallerinaArray(ArrayType array) {
-        String messageName = array.getElementType().getName();
+    public static String getElementTypeNameOfBallerinaArray(ArrayType array) {
+        Type basicElementType = array.getElementType();
 
-        while (messageName.equals(Constants.EMPTY_STRING)) {
+        while (basicElementType.getTag() == TypeTags.ARRAY_TAG) {
             array = (ArrayType) array.getElementType();
-            messageName = array.getElementType().getName();
+            basicElementType = array.getElementType();
         }
-        return messageName;
+        return basicElementType.getName();
     }
 
     // Create protobuf message name for the given ballerina primitive type (string -> StringValue)

@@ -39,6 +39,8 @@ type RecordWithMapField record {
     AgeMap ages;
 };
 
+type MapWithTuple map<TupleWithUnion>;
+
 @test:Config{}
 public isolated function testMapInt() returns error? {
 
@@ -234,3 +236,20 @@ public isolated function testMapFieldinRecord() returns error? {
 
     test:assertEquals(decode, data);
 }
+
+@test:Config{}
+public isolated function testMapWithTupleElement() returns error? {
+    MapWithTuple data = {
+       "first": ["serdes", 1.2],
+       "second": ["module", 2.4]
+    };
+
+    Proto3Schema ser = check new(MapWithTuple);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapWithTuple);
+    MapWithTuple decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+

@@ -147,7 +147,6 @@ public isolated function testTableAsMapConstraint() returns error? {
     };
 
     Proto3Schema ser = check new(MapWithTableConstraint);
-    check ser.generateProtoFile("MapWithTableConstraint.proto");
     byte[] encoded = check ser.serialize(data);
 
     Proto3Schema des = check new(MapWithTableConstraint);
