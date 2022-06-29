@@ -96,9 +96,14 @@ type RecordWithNonReferencedMapField record {
     map<int> ages;
 };
 
+public isolated function getErrorMessageForNonReferenceTypes(string typeName) returns string {
+    return "Type `" + typeName + "` not supported, use a reference type instead: " 
+        + "`type MyType " + typeName + ";`";
+}
+
 @test:Config {}
 public isolated function testRecordWithNonReferencedMapFieldError() returns error? {
-    string expectedErrorMsg = "Record field with map type only supported with reference map type";
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("map<int>");
 
     Proto3Schema|error ser = new(RecordWithNonReferencedMapField);
     
@@ -113,7 +118,7 @@ type RecordWithNonReferencedTableField record {
 
 @test:Config {}
 public isolated function testRecordWithNonReferencedTableFieldError() returns error? {
-    string expectedErrorMsg = "Record field with table type only supported with reference table type";
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("table<map<int>>");
 
     Proto3Schema|error ser = new(RecordWithNonReferencedTableField);
     
@@ -128,8 +133,7 @@ type RecordWithNonReferencedArrayTuple record {
 
 @test:Config {}
 public isolated function testRecordNonReferencedArrayOfTuplesError() returns error? {
-    string expectedErrorMsg = "Record field with array of tuple type member only supported "
-        + "with reference tuple type";
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("[int,int]");
 
     Proto3Schema|error ser = new (RecordWithNonReferencedArrayTuple);
 
@@ -186,7 +190,7 @@ type UnionWithNonReferenceTupleMembers [int, byte]|[string, decimal];
 
 @test:Config {}
 public isolated function testUnionWithNonReferencedTupleTypeError() returns error? {
-    string expectedErrorMsg = "Union with tuple type member only supported with reference tuple type";
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("[int,byte]");
 
     Proto3Schema|error ser = new(UnionWithNonReferenceTupleMembers);
     
@@ -199,8 +203,7 @@ type UnionWithNonReferencedArrayOfTupleMembers [int, byte][]|[string, decimal][]
 
 @test:Config {}
 public isolated function testUnionWithNonReferencedArrayOfTuplesError() returns error? {
-    string expectedErrorMsg = "Union with array of tuple type member only "
-        + "supported with reference tuple type";
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("[int,byte]");
 
     Proto3Schema|error ser = new (UnionWithNonReferencedArrayOfTupleMembers);
 
@@ -209,12 +212,11 @@ public isolated function testUnionWithNonReferencedArrayOfTuplesError() returns 
     test:assertEquals(err.message(), expectedErrorMsg);
 }
 
-type TupleWithNonReferenceArrayOfTuple [[int,int][], [boolean, float][]];
+type TupleWithNonReferenceArrayOfTuple [[int, int][], [boolean, float][]];
 
 @test:Config {}
 public isolated function testTupleWithNonReferenceArrayOfTuplesTypeError() returns error? {
-    string expectedErrorMsg = "Tuple element with array of tuple type member only supported "
-        + "with reference tuple type";
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("[int,int]");
 
     Proto3Schema|error ser = new (TupleWithNonReferenceArrayOfTuple);
 

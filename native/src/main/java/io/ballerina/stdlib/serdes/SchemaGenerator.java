@@ -71,10 +71,6 @@ import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.OPTIONAL_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.PROTO3;
-import static io.ballerina.stdlib.serdes.Constants.RECORD_FIELD_OF_MAP_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
-import static io.ballerina.stdlib.serdes.Constants.RECORD_FIELD_OF_TABLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
-import static io.ballerina.stdlib.serdes.Constants.RECORD_FIELD_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
-import static io.ballerina.stdlib.serdes.Constants.RECORD_FIELD_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.REPEATED_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_GENERATION_FAILURE;
@@ -85,14 +81,11 @@ import static io.ballerina.stdlib.serdes.Constants.TABLE_BUILDER;
 import static io.ballerina.stdlib.serdes.Constants.TABLE_ENTRY;
 import static io.ballerina.stdlib.serdes.Constants.TABLE_MEMBER_NOT_YET_SUPPORTED;
 import static io.ballerina.stdlib.serdes.Constants.TUPLE_BUILDER;
-import static io.ballerina.stdlib.serdes.Constants.TUPLE_ELEMENT_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.TUPLE_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UINT32;
 import static io.ballerina.stdlib.serdes.Constants.UNION_BUILDER_NAME;
 import static io.ballerina.stdlib.serdes.Constants.UNION_FIELD_NAME;
-import static io.ballerina.stdlib.serdes.Constants.UNION_MEMBER_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
-import static io.ballerina.stdlib.serdes.Constants.UNION_MEMBER_WITH_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.UNSUPPORTED_DATA_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE_NAME;
@@ -280,7 +273,7 @@ public class SchemaGenerator {
                 String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 return Map.entry(key, type);
             } else {
-                throw createSerdesError(UNION_MEMBER_WITH_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE, SERDES_ERROR);
+                throw createSerdesError(Utils.typeNotSupportedErrorMessage(type), SERDES_ERROR);
             }
         }
 
@@ -594,23 +587,20 @@ public class SchemaGenerator {
                 if (isUnionMember) {
                     String ballerinaType = referredElementType.getName();
                     if (ballerinaType.equals(EMPTY_STRING)) {
-                        throw createSerdesError(UNION_MEMBER_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE,
-                                SERDES_ERROR);
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(tupleType), SERDES_ERROR);
                     }
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + TUPLE_BUILDER;
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 } else if (isRecordField) {
                     String ballerinaType = referredElementType.getName();
                     if (ballerinaType.equals(EMPTY_STRING)) {
-                        throw createSerdesError(RECORD_FIELD_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE,
-                                SERDES_ERROR);
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(tupleType), SERDES_ERROR);
                     }
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + TUPLE_BUILDER;
                 } else if (isTupleElement) {
                     String ballerinaType = referredElementType.getName();
                     if (ballerinaType.equals(EMPTY_STRING)) {
-                        throw createSerdesError(TUPLE_ELEMENT_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE,
-                                SERDES_ERROR);
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(tupleType), SERDES_ERROR);
                     }
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + TUPLE_BUILDER;
                 }
@@ -711,7 +701,7 @@ public class SchemaGenerator {
 
                 case TypeTags.MAP_TAG: {
                     if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        throw createSerdesError(RECORD_FIELD_OF_MAP_ONLY_SUPPORTED_WITH_REFERENCE_TYPE, SERDES_ERROR);
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(fieldEntryType), SERDES_ERROR);
                     }
 
                     String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + MAP_BUILDER;
@@ -728,7 +718,7 @@ public class SchemaGenerator {
 
                 case TypeTags.TABLE_TAG: {
                     if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        throw createSerdesError(RECORD_FIELD_OF_TABLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE, SERDES_ERROR);
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(fieldEntryType), SERDES_ERROR);
                     }
 
                     String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + TABLE_BUILDER;
@@ -745,7 +735,7 @@ public class SchemaGenerator {
 
                 case TypeTags.TUPLE_TAG: {
                     if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        throw createSerdesError(RECORD_FIELD_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE, SERDES_ERROR);
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(fieldEntryType), SERDES_ERROR);
                     }
 
                     String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + TUPLE_BUILDER;

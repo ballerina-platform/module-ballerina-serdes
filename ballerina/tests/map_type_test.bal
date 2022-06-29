@@ -252,4 +252,3 @@ public isolated function testMapWithTupleElement() returns error? {
 
     test:assertEquals(decode, data);
 }
-

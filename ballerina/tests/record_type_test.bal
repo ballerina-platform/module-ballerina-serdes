@@ -349,7 +349,6 @@ public isolated function testRecordWithArrayOfTuple() returns error? {
     };
 
     Proto3Schema ser = check new (RecordWithArrayOfTuple);
-    check ser.generateProtoFile("A.proto");
     byte[] encoded = check ser.serialize(value);
 
     Proto3Schema des = check new (RecordWithArrayOfTuple);

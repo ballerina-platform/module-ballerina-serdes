@@ -52,6 +52,10 @@ public class Utils {
         return ErrorCreator.createError(getModule(), typeId, StringUtils.fromString(message), null, null);
     }
 
+    public static String typeNotSupportedErrorMessage(Type type) {
+        return "Type `" + type + "` not supported, use a reference type instead: " + "`type MyType " + type + ";`";
+    }
+
     // Get the dimention of given array type
     public static int getArrayDimensions(ArrayType array) {
         int dimension = 1;

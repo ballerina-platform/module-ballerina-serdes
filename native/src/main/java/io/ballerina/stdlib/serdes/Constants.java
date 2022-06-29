@@ -96,19 +96,5 @@ public final class Constants {
             + " tables as record field";
     public static final String ARRAY_OF_TABLE_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED = "Serdes not yet support array of"
             + " tables as tuple element";
-    public static final String RECORD_FIELD_OF_MAP_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field with map type "
-            + "only supported with reference map type";
-    public static final String RECORD_FIELD_OF_TABLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field with table "
-            + "type only supported with reference table type";
-    public static final String RECORD_FIELD_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field with tuple "
-            + "type only supported with reference table type";
-    public static final String RECORD_FIELD_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Record field with"
-            + " array of tuple type member only supported with reference tuple type";
-    public static final String UNION_MEMBER_WITH_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Union with tuple type"
-            + " member only supported with reference tuple type";
-    public static final String UNION_MEMBER_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Union with "
-            + "array of tuple type member only supported with reference tuple type";
-    public static final String TUPLE_ELEMENT_WITH_ARRAY_OF_TUPLE_ONLY_SUPPORTED_WITH_REFERENCE_TYPE = "Tuple element "
-            + "with array of tuple type member only supported with reference tuple type";
     public static final BString BALLERINA_TYPEDESC_ATTRIBUTE_NAME = StringUtils.fromString("dataType");
 }
