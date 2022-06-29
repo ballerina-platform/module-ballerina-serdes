@@ -16,7 +16,7 @@
 
 import ballerina/test;
 
-type EmployeeTable table<map<any>>;
+type EmployeeTable table<map<anydata>>;
 
 @test:Config{}
 public isolated function testUnsupportedDataType() returns error? {
@@ -64,4 +64,45 @@ public isolated function testRecordTypeMismatch() returns error? {
     test:assertTrue(encoded is Error);
     Error err = <Error> encoded;
     test:assertEquals(err.message(), expected);
+}
+
+type MapA map<int>;
+type MapB map<float>;
+type UnionOfMaps MapA|MapB;
+
+@test:Config {}
+public function testMapUnionMemberNotYetSupporteError() returns error? {
+    string expectedErrorMsg = "Serdes not yet support map type as union member";
+
+    Proto3Schema|error ser = new(UnionOfMaps);
+    
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
+}
+
+@test:Config {}
+public isolated function testMapArrayUnionMemberNotYetSupporteError() returns error? {
+    string expectedErrorMsg = "Serdes not yet support array of maps as union member";
+
+    Proto3Schema|error ser = new(UnionWithArrayOfMaps);
+    
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
+}
+
+type RecordWithNonReferencedMapField record {
+    map<int> ages;
+};
+
+@test:Config {}
+public isolated function testRecordWithNonReferencedMapFieldError() returns error? {
+    string expectedErrorMsg = "Record field of map type only supported with reference map type";
+
+    Proto3Schema|error ser = new(RecordWithNonReferencedMapField);
+    
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
 }
