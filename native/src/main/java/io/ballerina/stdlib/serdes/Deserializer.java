@@ -53,6 +53,7 @@ import static io.ballerina.stdlib.serdes.Constants.ARRAY_BUILDER_NAME;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.ATOMIC_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.BALLERINA_TYPEDESC_ATTRIBUTE_NAME;
+import static io.ballerina.stdlib.serdes.Constants.CURLY_BRACE;
 import static io.ballerina.stdlib.serdes.Constants.DECIMAL_VALUE;
 import static io.ballerina.stdlib.serdes.Constants.DESERIALIZATION_ERROR_MESSAGE;
 import static io.ballerina.stdlib.serdes.Constants.KEY_NAME;
@@ -64,6 +65,7 @@ import static io.ballerina.stdlib.serdes.Constants.SCHEMA_NAME;
 import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.TABLE_ENTRY;
 import static io.ballerina.stdlib.serdes.Constants.TUPLE_BUILDER;
+import static io.ballerina.stdlib.serdes.Constants.TUPLE_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UNSUPPORTED_DATA_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE;
@@ -211,8 +213,7 @@ public class Deserializer {
                 return ValueCreator.createArrayValue(byteString.toByteArray());
             }
 
-            if (value instanceof DynamicMessage &&
-                    fieldDescriptor.getMessageType().getName().contains(TUPLE_BUILDER)) {
+            if (value instanceof DynamicMessage && fieldDescriptor.getMessageType().getName().contains(TUPLE_BUILDER)) {
                 // Handle tuple values
                 String ballerinaTypeName = fieldDescriptor.getMessageType().getName().split(TYPE_SEPARATOR)[0];
                 TupleType tupleType = getBallerinaTupleTypeFromUnion((UnionType) type, ballerinaTypeName);
@@ -241,8 +242,7 @@ public class Deserializer {
     }
 
     private static Object getArrayTypeValueFromMessage(Object value, Type elementType, Descriptor messageDescriptor,
-                                                       int dimensions,
-                                                       String ballerinaTypeNamePrefixOfUnionMemberOrRecordField) {
+                                                       int dimensions, String prefixName) {
         // Handle byte array value
         if (value instanceof ByteString) {
             ByteString byteString = (ByteString) value;
@@ -286,9 +286,10 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredElementType;
                     String typeName = ARRAY_BUILDER_NAME;
 
-                    if (ballerinaTypeNamePrefixOfUnionMemberOrRecordField != null) {
+                    // prefix can be type of union member, type of record field,
+                    if (prefixName != null) {
                         typeName = ARRAY_BUILDER_NAME + SEPARATOR + (dimensions - 1);
-                        typeName = ballerinaTypeNamePrefixOfUnionMemberOrRecordField + TYPE_SEPARATOR + typeName;
+                        typeName = prefixName + TYPE_SEPARATOR + typeName;
                     }
 
                     Descriptor nestedSchema = messageDescriptor.findNestedTypeByName(typeName);
@@ -374,11 +375,13 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredEntryFieldType;
                     Descriptor recordSchema = fieldDescriptor.getContainingType();
 
-                    String ballerinaTypeName = Utils.getElementTypeNameOfBallerinaArray(arrayType);
+                    Type basicType = Utils.getElementTypeOfBallerinaArray(arrayType);
+                    String prefixName = isMapTableOrNonReferencedRecord(basicType) ? entryFieldName :
+                            basicType.getName();
                     int dimention = Utils.getArrayDimensions(arrayType);
 
                     ballerinaValue = getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema,
-                            dimention, ballerinaTypeName);
+                            dimention, prefixName);
                     break;
                 }
 
@@ -462,11 +465,7 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredConstrainedType;
                     Descriptor recordSchema = valueFieldDescriptor.getContainingType();
 
-                    String ballerinaTypeName = Utils.getElementTypeNameOfBallerinaArray(arrayType);
-                    int dimention = Utils.getArrayDimensions(arrayType);
-
-                    ballerinaValue = getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema,
-                            dimention, ballerinaTypeName);
+                    ballerinaValue = getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema);
                     break;
                 }
 
@@ -570,11 +569,14 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredElementType;
                     Descriptor recordSchema = tupleField.getKey().getContainingType();
 
-                    String ballerinaTypeName = Utils.getElementTypeNameOfBallerinaArray(arrayType);
+
+                    Type basicType = Utils.getElementTypeOfBallerinaArray(arrayType);
+                    String prefixName = isMapTableOrNonReferencedRecord(basicType) ?
+                            TUPLE_FIELD_NAME + SEPARATOR + (tupleElementIndex + 1) : basicType.getName();
                     int dimention = Utils.getArrayDimensions(arrayType);
 
                     ballerinaValue = getArrayTypeValueFromMessage(tupleFieldValue, arrayType.getElementType(),
-                            recordSchema, dimention, ballerinaTypeName);
+                            recordSchema, dimention, prefixName);
                     break;
                 }
 
@@ -659,5 +661,10 @@ public class Deserializer {
             }
         }
         return targetArrayType;
+    }
+
+    private static boolean isMapTableOrNonReferencedRecord(Type type) {
+        return type.getTag() == TypeTags.MAP_TAG || type.getTag() == TypeTags.TABLE_TAG || type.getName()
+                .contains(CURLY_BRACE);
     }
 }

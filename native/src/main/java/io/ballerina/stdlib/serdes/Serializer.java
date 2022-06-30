@@ -253,7 +253,7 @@ public class Serializer {
                 return generateMessageForArrayType(messageBuilder, fieldDescriptor, bArray);
             }
         }
-        
+
         if (anydata instanceof BMap) {
             @SuppressWarnings("unchecked") BMap<BString, Object> ballerinaMapOrRecord = (BMap<BString, Object>) anydata;
             // Handle ballerina record
@@ -459,7 +459,6 @@ public class Serializer {
                     messageBuilder.setField(fieldDescriptor, nestedMessage);
                     break;
                 }
-
 
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredRecordFieldType.getName(), SERDES_ERROR);

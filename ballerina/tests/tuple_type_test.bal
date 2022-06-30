@@ -25,6 +25,10 @@ type TupleWithMap [map<int>, map<Student>];
 type TupleWithTable [table<map<int>>, table<Student>];
 type TupleOfTuples [PrimitiveTuple, TupleWithUnion];
 type TupleWithTupleArrays [PrimitiveTuple[], TupleWithUnion[][]];
+type TupleWithTableArrays [table<map<int>>[][], table<Student>[][]];
+type TupleWithNonReferenceArrayOfTuple [[int, int][], [boolean, float][]];
+type TupleWithNonReferenceRecords [record {string name;}, record {int id;}];
+type TupleWithNonReferenceArrayOfRecords [record {string name;}[][][], record {int id;}[]];
 
 @test:Config {}
 public isolated function testTupleWithPrimitive() returns error? {
@@ -135,4 +139,74 @@ public isolated function testTupleWithArrayOfTupleElements() returns error? {
     Proto3Schema des = check new (TupleWithTupleArrays);
     TupleWithTupleArrays decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, value);
+}
+
+@test:Config {}
+public isolated function testTupleWithTableArrayElements() returns error? {
+    TupleWithTableArrays value = [
+        [[
+            table [
+                    {"a": 10},
+                    {"b": 20, c: 30}
+                ]
+        ]],
+        [[
+            table [
+                    {name: "Linus Torvalds", courseId: 123, fees: 3.4e10},
+                    {name: "Andrew S. Tanenbaum", courseId: 123, fees: 3.4e10}
+                ]
+        ]]
+    ];
+
+    Proto3Schema ser = check new (TupleWithTableArrays);
+    byte[] encoded = check ser.serialize(value);
+
+    Proto3Schema des = check new (TupleWithTableArrays);
+    TupleWithTableArrays decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, value);
+}
+
+@test:Config {}
+public isolated function testTupleWithNonReferenceArrayOfTuples() returns error? {
+    TupleWithNonReferenceArrayOfTuple value = [[[2,3]], [[false, 2.4]]];
+
+    Proto3Schema ser = check new (TupleWithNonReferenceArrayOfTuple);
+    byte[] encoded = check ser.serialize(value);
+
+    Proto3Schema des = check new (TupleWithNonReferenceArrayOfTuple);
+    TupleWithNonReferenceArrayOfTuple decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, value);
+}
+
+
+@test:Config {}
+public isolated function testTupleWithNonReferencedRecords() returns error? {
+    TupleWithNonReferenceRecords data = [
+        {name: "serdes"},
+        {id: 1}
+    ];
+
+    Proto3Schema ser = check new (TupleWithNonReferenceRecords);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (TupleWithNonReferenceRecords);
+    TupleWithNonReferenceRecords decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+
+@test:Config {}
+public isolated function testTupleWithNonReferencedArrayOfRecords() returns error? {
+    TupleWithNonReferenceArrayOfRecords data = [
+        [[[{name: "serdes"}]]],
+        [{id: 1}]
+    ];
+
+    Proto3Schema ser = check new (TupleWithNonReferenceArrayOfRecords);
+
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (TupleWithNonReferenceArrayOfRecords);
+    TupleWithNonReferenceArrayOfRecords decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
 }

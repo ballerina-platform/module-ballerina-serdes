@@ -78,14 +78,19 @@ public class Utils {
     }
 
     // Get the basic ballerina type of the given array
-    public static String getElementTypeNameOfBallerinaArray(ArrayType array) {
+    public static Type getElementTypeOfBallerinaArray(ArrayType array) {
         Type basicElementType = array.getElementType();
 
         while (basicElementType.getTag() == TypeTags.ARRAY_TAG) {
             array = (ArrayType) array.getElementType();
             basicElementType = array.getElementType();
         }
-        return basicElementType.getName();
+        return basicElementType;
+    }
+
+    // Get the basic ballerina type name of the given array
+    public static String getElementTypeNameOfBallerinaArray(ArrayType array) {
+        return getElementTypeOfBallerinaArray(array).getName();
     }
 
     // Create protobuf message name for the given ballerina primitive type (string -> StringValue)

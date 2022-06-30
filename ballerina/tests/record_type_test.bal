@@ -125,6 +125,36 @@ type RecordWithArrayOfTuple record {
     PrimitiveTuple[] field2;
 };
 
+type RecordWithNonReferencedTableField record {
+    table<map<int>> ages;
+};
+
+type RecordWithMapArrayField record {
+    map<int>[][][] ages;
+    MapRecord[] mapRecords;
+};
+
+type RecordWithTupleArrayField record {
+    [int, int][][] field1;
+    PrimitiveTuple[] field2;
+    TupleWithUnion[][] field3;
+};
+
+type RecordWithNonReferencedArrayTuple record {
+    [int, int][] field1;
+    [decimal, string][] field2;
+};
+
+type RecordWithNonReferencedRecordFields record {
+    record {string name;} field1;
+    record {int id;} field2;
+};
+
+type RecordWithNonReferencedArrayOfRecords record {
+    record {string name;}[] field1;
+    record {int id;}[][][] field2;
+};
+
 @test:Config {}
 public isolated function testRecordWithPrimitives() returns error? {
     Employee jhon = {
@@ -354,4 +384,96 @@ public isolated function testRecordWithArrayOfTuple() returns error? {
     Proto3Schema des = check new (RecordWithArrayOfTuple);
     RecordWithArrayOfTuple decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, value);
+}
+
+@test:Config {}
+public isolated function testRecordWithNonReferencedTableField() returns error? {
+    RecordWithNonReferencedTableField data = {
+        ages: table [{"age": 24}]
+    };
+
+    Proto3Schema ser = check new (RecordWithNonReferencedTableField);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithNonReferencedTableField);
+    RecordWithNonReferencedTableField decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testRecordWithMapArray() returns error? {
+    RecordWithMapArrayField data = {
+        ages: [[[{"Jhon": 23}]]],
+        mapRecords: []
+    };
+
+    Proto3Schema ser = check new (RecordWithMapArrayField);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithMapArrayField);
+    RecordWithMapArrayField decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testRecordWithTupleArray() returns error? {
+
+    RecordWithTupleArrayField data = {
+        field1: [[[1,2]], [[4,5], [6,7]]],
+        field2: [[254, 100000, 1.2, true, "serdes", 3.2e-5]],
+        field3: [[["serdes", 3.2e-5]]]
+    };
+
+    Proto3Schema ser = check new (RecordWithTupleArrayField);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithTupleArrayField);
+    RecordWithTupleArrayField decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testRecordNonReferencedArrayOfTuples() returns error? {
+    RecordWithNonReferencedArrayTuple data = {
+      field1: [[1,2]],
+      field2: [[2.3, "module"],[2.4, "serdes"]]
+    };
+
+    Proto3Schema ser = check new (RecordWithNonReferencedArrayTuple);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithNonReferencedArrayTuple);
+    RecordWithNonReferencedArrayTuple decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+
+@test:Config {}
+public isolated function testRecordWithNonReferencedRecordFields() returns error? {
+    RecordWithNonReferencedRecordFields data = {
+        field1: {name: "serdes"},
+        field2: {id:1}
+    };
+
+    Proto3Schema ser = check new (RecordWithNonReferencedRecordFields);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithNonReferencedRecordFields);
+    RecordWithNonReferencedRecordFields decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testRecordWithNonReferencedArrayOfRecords() returns error? {
+    RecordWithNonReferencedArrayOfRecords data = {
+        field1: [{name: "serdes"}],
+        field2: [[[{id:1}]]]
+    };
+
+    Proto3Schema ser = check new (RecordWithNonReferencedArrayOfRecords);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (RecordWithNonReferencedArrayOfRecords);
+    RecordWithNonReferencedArrayOfRecords decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
 }
