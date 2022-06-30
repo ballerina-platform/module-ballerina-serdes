@@ -224,7 +224,6 @@ public class Serializer {
             return generateMessageForPrimitiveType(messageBuilder, fieldDescriptor, anydata, ballerinaType);
         }
 
-
         if (anydata instanceof BArray) {
             BArray bArray = (BArray) anydata;
             // Handle ballerina tuple
@@ -254,8 +253,7 @@ public class Serializer {
                 return generateMessageForArrayType(messageBuilder, fieldDescriptor, bArray);
             }
         }
-
-
+        
         if (anydata instanceof BMap) {
             @SuppressWarnings("unchecked") BMap<BString, Object> ballerinaMapOrRecord = (BMap<BString, Object>) anydata;
             // Handle ballerina record
