@@ -11,3 +11,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [[#3012] Add support to decimal, records and arrays types](https://github.com/ballerina-platform/ballerina-standard-library/issues/3012#issue-1274825828)
 - [[#3013] Add support for record with cyclic references](https://github.com/ballerina-platform/ballerina-standard-library/issues/3013#issue-1274864592)
 - [[#3032] Add support to ballerina map type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3032#issue-1283701869)
+- [[#3043] Add support to ballerina table type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3043#issue-1288139316)
+- [[#3046] Add support to ballerina tuple type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3046#issue-1289604760)
