@@ -28,6 +28,8 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.TableType;
+import io.ballerina.runtime.api.types.TupleType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -38,6 +40,7 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTable;
 import io.ballerina.runtime.api.values.BTypedesc;
 
 import java.math.BigDecimal;
@@ -59,6 +62,8 @@ import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_NAME;
 import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
+import static io.ballerina.stdlib.serdes.Constants.TABLE_ENTRY;
+import static io.ballerina.stdlib.serdes.Constants.TUPLE_BUILDER;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
 import static io.ballerina.stdlib.serdes.Constants.UNSUPPORTED_DATA_TYPE;
 import static io.ballerina.stdlib.serdes.Constants.VALUE;
@@ -132,6 +137,14 @@ public class Deserializer {
                 return getMapTypeValueFromMessage(dynamicMessage, (MapType) referredType);
             }
 
+            case TypeTags.TABLE_TAG: {
+                return getTableTypeValueFromMessage(dynamicMessage, (TableType) referredType);
+            }
+
+            case TypeTags.TUPLE_TAG: {
+                return getTupleTypeValueFromMessage(dynamicMessage, (TupleType) referredType);
+            }
+
             default:
                 throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredType.getName(), SERDES_ERROR);
         }
@@ -181,8 +194,8 @@ public class Deserializer {
                 return null;
             }
 
-            // Handle array values
             if (fieldDescriptor.isRepeated()) {
+                // Handle array values
                 String fieldName = fieldDescriptor.getName();
                 String[] tokens = fieldName.split(TYPE_SEPARATOR);
                 String ballerinaTypeName = tokens[0];
@@ -190,11 +203,23 @@ public class Deserializer {
                 ArrayType arrayType = getBallerinaArrayTypeFromUnion((UnionType) type, ballerinaTypeName, dimention);
                 return getArrayTypeValueFromMessage(value, arrayType.getElementType(), messageDescriptor, dimention,
                         ballerinaTypeName);
-            } else if (value instanceof ByteString && fieldDescriptor.getName().contains(ARRAY_FIELD_NAME)) {
+            }
+
+            if (value instanceof ByteString && fieldDescriptor.getName().contains(ARRAY_FIELD_NAME)) {
                 // Handle byte array values
                 ByteString byteString = (ByteString) value;
                 return ValueCreator.createArrayValue(byteString.toByteArray());
-            } else if (value instanceof DynamicMessage && !fieldDescriptor.getMessageType().getName()
+            }
+
+            if (value instanceof DynamicMessage &&
+                    fieldDescriptor.getMessageType().getName().contains(TUPLE_BUILDER)) {
+                // Handle tuple values
+                String ballerinaTypeName = fieldDescriptor.getMessageType().getName().split(TYPE_SEPARATOR)[0];
+                TupleType tupleType = getBallerinaTupleTypeFromUnion((UnionType) type, ballerinaTypeName);
+                return getTupleTypeValueFromMessage((DynamicMessage) value, tupleType);
+            }
+
+            if (value instanceof DynamicMessage && !fieldDescriptor.getMessageType().getName()
                     .contains(DECIMAL_VALUE)) {
                 // Handle record values
                 String fieldName = fieldDescriptor.getName();
@@ -202,10 +227,10 @@ public class Deserializer {
                 String ballerinaType = tokens[0];
                 RecordType recordType = getBallerinaRecordTypeFromUnion((UnionType) type, ballerinaType);
                 return getRecordTypeValueFromMessage((DynamicMessage) value, recordType);
-            } else {
-                // Handle primitive values
-                return getPrimitiveTypeValueFromMessage(value);
             }
+
+            // Handle primitive values
+            return getPrimitiveTypeValueFromMessage(value);
         }
 
         throw createSerdesError(UNSUPPORTED_DATA_TYPE + type.getName(), SERDES_ERROR);
@@ -290,6 +315,20 @@ public class Deserializer {
                     break;
                 }
 
+                case TypeTags.TABLE_TAG: {
+                    TableType tableType = (TableType) referredElementType;
+                    Object table = getTableTypeValueFromMessage((DynamicMessage) element, tableType);
+                    bArray.append(table);
+                    break;
+                }
+
+                case TypeTags.TUPLE_TAG: {
+                    TupleType tupleType = (TupleType) referredElementType;
+                    Object tuple = getTupleTypeValueFromMessage((DynamicMessage) element, tupleType);
+                    bArray.append(tuple);
+                    break;
+                }
+
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredElementType.getName(), SERDES_ERROR);
             }
@@ -335,8 +374,8 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredEntryFieldType;
                     Descriptor recordSchema = fieldDescriptor.getContainingType();
 
-                    String ballerinaTypeName = Utils.getElementTypeOfBallerinaArray(arrayType);
-                    int dimention = Utils.getDimensions(arrayType);
+                    String ballerinaTypeName = Utils.getElementTypeNameOfBallerinaArray(arrayType);
+                    int dimention = Utils.getArrayDimensions(arrayType);
 
                     ballerinaValue = getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema,
                             dimention, ballerinaTypeName);
@@ -354,6 +393,20 @@ public class Deserializer {
                     Object mapMessage = dynamicMessage.getField(fieldDescriptor);
                     ballerinaValue = getMapTypeValueFromMessage((DynamicMessage) mapMessage,
                             (MapType) referredEntryFieldType);
+                    break;
+                }
+
+                case TypeTags.TABLE_TAG: {
+                    Object tableMessage = dynamicMessage.getField(fieldDescriptor);
+                    ballerinaValue = getTableTypeValueFromMessage((DynamicMessage) tableMessage,
+                            (TableType) referredEntryFieldType);
+                    break;
+                }
+
+                case TypeTags.TUPLE_TAG: {
+                    Object tupleMessage = dynamicMessage.getField(fieldDescriptor);
+                    ballerinaValue = getTupleTypeValueFromMessage((DynamicMessage) tupleMessage,
+                            (TupleType) referredEntryFieldType);
                     break;
                 }
 
@@ -409,8 +462,8 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredConstrainedType;
                     Descriptor recordSchema = valueFieldDescriptor.getContainingType();
 
-                    String ballerinaTypeName = Utils.getElementTypeOfBallerinaArray(arrayType);
-                    int dimention = Utils.getDimensions(arrayType);
+                    String ballerinaTypeName = Utils.getElementTypeNameOfBallerinaArray(arrayType);
+                    int dimention = Utils.getArrayDimensions(arrayType);
 
                     ballerinaValue = getArrayTypeValueFromMessage(value, arrayType.getElementType(), recordSchema,
                             dimention, ballerinaTypeName);
@@ -429,12 +482,149 @@ public class Deserializer {
                     break;
                 }
 
+                case TypeTags.TABLE_TAG: {
+                    ballerinaValue = getTableTypeValueFromMessage((DynamicMessage) value,
+                            (TableType) referredConstrainedType);
+                    break;
+                }
+
+                case TypeTags.TUPLE_TAG: {
+                    ballerinaValue = getTupleTypeValueFromMessage((DynamicMessage) value,
+                            (TupleType) referredConstrainedType);
+                    break;
+                }
+
                 default:
                     throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
             }
             ballerinaMap.put(StringUtils.fromString(key), ballerinaValue);
         }
         return ballerinaMap;
+    }
+
+    private static Object getTableTypeValueFromMessage(DynamicMessage dynamicMessage, TableType tableType) {
+        BTable table = ValueCreator.createTableValue(tableType);
+
+        Type constrainedType = tableType.getConstrainedType();
+        Type referredConstrainedType = TypeUtils.getReferredType(constrainedType);
+
+        FieldDescriptor tableEntryFieldDescriptor = dynamicMessage.getDescriptorForType().findFieldByName(TABLE_ENTRY);
+        Collection<?> tableEntries = (Collection<?>) dynamicMessage.getField(tableEntryFieldDescriptor);
+
+        for (Object tableEntry : tableEntries) {
+            DynamicMessage tableEntryMessage = (DynamicMessage) tableEntry;
+            Object ballerinaValue;
+
+            switch (referredConstrainedType.getTag()) {
+                case TypeTags.RECORD_TYPE_TAG: {
+                    ballerinaValue = getRecordTypeValueFromMessage(tableEntryMessage,
+                            (RecordType) referredConstrainedType);
+                    break;
+                }
+
+                case TypeTags.MAP_TAG: {
+                    ballerinaValue = getMapTypeValueFromMessage(tableEntryMessage, (MapType) referredConstrainedType);
+                    break;
+                }
+
+                default:
+                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredConstrainedType.getName(), SERDES_ERROR);
+
+            }
+            table.add(ballerinaValue);
+        }
+        return table;
+    }
+
+    private static Object getTupleTypeValueFromMessage(DynamicMessage dynamicMessage, TupleType tupleType) {
+        BArray tuple = ValueCreator.createTupleValue(tupleType);
+        for (Map.Entry<FieldDescriptor, Object> tupleField : dynamicMessage.getAllFields().entrySet()) {
+            int tupleElementIndex = tupleField.getKey().getNumber() - 1;
+            Type tupleElementType = tupleType.getTupleTypes().get(tupleElementIndex);
+            Type referredElementType = TypeUtils.getReferredType(tupleElementType);
+            Object tupleFieldValue = tupleField.getValue();
+            Object ballerinaValue;
+
+            switch (referredElementType.getTag()) {
+                case TypeTags.INT_TAG:
+                case TypeTags.BYTE_TAG:
+                case TypeTags.FLOAT_TAG:
+                case TypeTags.STRING_TAG:
+                case TypeTags.BOOLEAN_TAG: {
+                    ballerinaValue = getPrimitiveTypeValueFromMessage(tupleFieldValue);
+                    break;
+                }
+
+                case TypeTags.DECIMAL_TAG: {
+                    ballerinaValue = getDecimalPrimitiveTypeValueFromMessage((DynamicMessage) tupleFieldValue);
+                    break;
+                }
+
+                case TypeTags.UNION_TAG: {
+                    ballerinaValue = getUnionTypeValueFromMessage((DynamicMessage) tupleFieldValue,
+                            referredElementType);
+                    break;
+                }
+
+                case TypeTags.ARRAY_TAG: {
+                    ArrayType arrayType = (ArrayType) referredElementType;
+                    Descriptor recordSchema = tupleField.getKey().getContainingType();
+
+                    String ballerinaTypeName = Utils.getElementTypeNameOfBallerinaArray(arrayType);
+                    int dimention = Utils.getArrayDimensions(arrayType);
+
+                    ballerinaValue = getArrayTypeValueFromMessage(tupleFieldValue, arrayType.getElementType(),
+                            recordSchema, dimention, ballerinaTypeName);
+                    break;
+                }
+
+                case TypeTags.RECORD_TYPE_TAG: {
+                    ballerinaValue = getRecordTypeValueFromMessage((DynamicMessage) tupleFieldValue,
+                            (RecordType) referredElementType);
+                    break;
+                }
+
+                case TypeTags.MAP_TAG: {
+                    ballerinaValue = getMapTypeValueFromMessage((DynamicMessage) tupleFieldValue,
+                            (MapType) referredElementType);
+                    break;
+                }
+
+                case TypeTags.TABLE_TAG: {
+                    ballerinaValue = getTableTypeValueFromMessage((DynamicMessage) tupleFieldValue,
+                            (TableType) referredElementType);
+                    break;
+                }
+
+                case TypeTags.TUPLE_TAG: {
+                    ballerinaValue = getTupleTypeValueFromMessage((DynamicMessage) tupleFieldValue,
+                            (TupleType) referredElementType);
+                    break;
+                }
+
+                default:
+                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + referredElementType.getName(), SERDES_ERROR);
+
+            }
+            tuple.add(tupleElementIndex, ballerinaValue);
+        }
+        return tuple;
+    }
+
+    private static TupleType getBallerinaTupleTypeFromUnion(UnionType unionType, String targetBallerinaTypeName) {
+        TupleType targetTupleType = null;
+
+        for (Type memberType : unionType.getMemberTypes()) {
+            memberType = TypeUtils.getReferredType(memberType);
+            if (memberType.getTag() == TypeTags.TUPLE_TAG) {
+                String tupleTypeName = memberType.getName();
+                if (tupleTypeName.equals(targetBallerinaTypeName)) {
+                    targetTupleType = (TupleType) memberType;
+                    break;
+                }
+            }
+        }
+        return targetTupleType;
     }
 
     private static RecordType getBallerinaRecordTypeFromUnion(UnionType unionType, String targetBallerinaTypeName) {
@@ -460,8 +650,8 @@ public class Deserializer {
         for (Type memberType : unionType.getMemberTypes()) {
             memberType = TypeUtils.getReferredType(memberType);
             if (memberType.getTag() == TypeTags.ARRAY_TAG) {
-                String arrayBasicType = Utils.getElementTypeOfBallerinaArray((ArrayType) memberType);
-                int arrayDimention = Utils.getDimensions((ArrayType) memberType);
+                String arrayBasicType = Utils.getElementTypeNameOfBallerinaArray((ArrayType) memberType);
+                int arrayDimention = Utils.getArrayDimensions((ArrayType) memberType);
                 if (arrayDimention == dimention && arrayBasicType.equals(targetBallerinaTypeName)) {
                     targetArrayType = (ArrayType) memberType;
                     break;

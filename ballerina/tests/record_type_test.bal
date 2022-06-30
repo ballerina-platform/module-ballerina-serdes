@@ -108,6 +108,23 @@ type Nested3 record {
     Nested1? nested;
 };
 
+type UnionField1 int|int[]|string;
+type UnionField2 decimal|int[];
+type RecordWithUnionArrayField record {
+    UnionField1[] feild1;
+    UnionField2[] feild2;
+};
+
+type RecordWithTuple record {
+    TupleWithUnion field1;
+    PrimitiveTuple field2;
+};
+
+type RecordWithArrayOfTuple record {
+    TupleWithUnion[][] field1;
+    PrimitiveTuple[] field2;
+};
+
 @test:Config {}
 public isolated function testRecordWithPrimitives() returns error? {
     Employee jhon = {
@@ -231,6 +248,18 @@ public isolated function testRecordWithUnionFields() returns error? {
 }
 
 @test:Config {}
+public isolated function testRecordWithUnionArrayField() returns error? {
+    RecordWithUnionArrayField rec = {feild1: ["serdes"], feild2: [2.3e10]};
+
+    Proto3Schema ser = check new (RecordWithUnionArrayField);
+    byte[] encoded = check ser.serialize(rec);
+
+    Proto3Schema des = check new (RecordWithUnionArrayField);
+    RecordWithUnionArrayField decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, rec);
+}
+
+@test:Config {}
 public function testRecordWithMultidimentionalArrays() returns error? {
     Proto3Schema ser = check new Proto3Schema(RecordWithMultidimentionalArrays);
 
@@ -289,11 +318,40 @@ public function testNestedRecordWithCyclicReference() returns error? {
     };
 
     Proto3Schema ser = check new (Nested1);
-    check ser.generateProtoFile("Nested.proto");
     byte[] encode = check ser.serialize(data);
 
     Proto3Schema des = check new (Nested1);
     Nested1 decoded = check des.deserialize(encode);
 
     test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testRecordWithTupleField() returns error? {
+    RecordWithTuple value = {
+        field1: ["serdes", 4.5],
+        field2: [100, 30000, 0.0, false, "serdes", 4.999999999d]
+    };
+
+    Proto3Schema ser = check new (RecordWithTuple);
+    byte[] encoded = check ser.serialize(value);
+
+    Proto3Schema des = check new (RecordWithTuple);
+    RecordWithTuple decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, value);
+}
+
+@test:Config {}
+public isolated function testRecordWithArrayOfTuple() returns error? {
+    RecordWithArrayOfTuple value = {
+        field1: [[["serdes", 4.5]]],
+        field2: [[100, 30000, 0.0, false, "serdes", 4.999999999d]]
+    };
+
+    Proto3Schema ser = check new (RecordWithArrayOfTuple);
+    byte[] encoded = check ser.serialize(value);
+
+    Proto3Schema des = check new (RecordWithArrayOfTuple);
+    RecordWithArrayOfTuple decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, value);
 }

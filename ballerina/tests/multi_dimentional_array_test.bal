@@ -43,6 +43,8 @@ type AgeMap map<int>;
 type AgeMapArray AgeMap[];
 type AgeMap2DArray AgeMapArray[];
 
+type ArrayOfTuples TupleWithUnion[][];
+
 @test:Config {}
 public isolated function testInt2DArray() returns error? {
     Int2DArray data = [
@@ -194,4 +196,16 @@ public isolated function test2DArrayofMaps() returns error? {
     Proto3Schema des = check new (AgeMap2DArray);
     AgeMap2DArray decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testArrayOfTuples() returns error? {
+    ArrayOfTuples value = [[["serdes", 1.2d]],[["module", 3.4]]];
+
+    Proto3Schema ser = check new (ArrayOfTuples);
+    byte[] encoded = check ser.serialize(value);
+
+    Proto3Schema des = check new (ArrayOfTuples);
+    ArrayOfTuples decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, value);
 }

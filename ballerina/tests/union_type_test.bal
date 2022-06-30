@@ -49,6 +49,11 @@ type UnionWithRecord int|string[]|UnionMember|();
 type CompleUnion UnionOfPrimitiveAndArrays|UnionOfUnionArray|UnionWithRecord;
 type UnionWithArrayOfMaps MapString[]|MapInt[];
 
+type TupleA [int, string];
+type TupleB [boolean, decimal];
+type UnionOfTuples TupleA | TupleB;
+type UnionOfTupleArrays TupleA[] | TupleB[];
+
 @test:Config {}
 public isolated function testPrimitiveUnion() returns error? {
     PrimitiveUnion nums = 3.9d;
@@ -145,4 +150,28 @@ public isolated function testComplexUnion() returns error? {
     Proto3Schema des = check new (CompleUnion);
     CompleUnion decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, member);
+}
+
+@test:Config {}
+public isolated function testUnionOfTuples() returns error? {
+    UnionOfTuples data = [10, "serdes"];
+
+    Proto3Schema ser = check new (UnionOfTuples);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (UnionOfTuples);
+    UnionOfTuples decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testUnionOfTupleArrays() returns error? {
+    UnionOfTupleArrays data = [[10, "serdes"]];
+
+    Proto3Schema ser = check new (UnionOfTupleArrays);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (UnionOfTupleArrays);
+    UnionOfTupleArrays decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
 }
