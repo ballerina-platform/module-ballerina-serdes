@@ -200,7 +200,7 @@ public class Serializer {
         String javaType = anydata.getClass().getSimpleName();
         String ballerinaType = DataTypeMapper.mapJavaTypeToBallerinaType(javaType);
 
-        // Handle all ballerina primitive values
+        // Handle all ballerina primitive values and enum values
         if (DataTypeMapper.isValidJavaType(javaType)) {
             String fieldName = ballerinaType + TYPE_SEPARATOR + UNION_FIELD_NAME;
             FieldDescriptor fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
@@ -218,6 +218,12 @@ public class Serializer {
             // Handle byte type
             if (fieldDescriptor == null && javaType.equals(INTEGER)) {
                 fieldName = BYTE + TYPE_SEPARATOR + UNION_FIELD_NAME;
+                fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
+            }
+
+            // Handle enum value
+            if (fieldDescriptor == null && DataTypeMapper.mapJavaTypeToBallerinaType(javaType).equals(STRING)) {
+                fieldName = ((BString) anydata).getValue();
                 fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
             }
 
