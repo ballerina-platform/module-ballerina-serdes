@@ -447,7 +447,6 @@ public isolated function testRecordNonReferencedArrayOfTuples() returns error? {
     test:assertEquals(decoded, data);
 }
 
-
 @test:Config {}
 public isolated function testRecordWithNonReferencedRecordFields() returns error? {
     RecordWithNonReferencedRecordFields data = {

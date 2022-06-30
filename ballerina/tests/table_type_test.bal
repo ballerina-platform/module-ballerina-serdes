@@ -167,4 +167,5 @@ public isolated function testTableWithNonReferenceRecord() returns error? {
     Proto3Schema des = check new(TableWihtNonReferenceRocord);
     TableWihtNonReferenceRocord decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
-}  
+}
+  
