@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -54,6 +55,12 @@ public class Utils {
 
     public static String typeNotSupportedErrorMessage(Type type) {
         return "Type `" + type + "` not supported, use a reference type instead: " + "`type MyType " + type + ";`";
+    }
+
+    public static String typeNotSupportedErrorMessage(RecordType type) {
+        String recordTypeWithoutModulePrefix = type.toString().split(":")[1];
+        return "Type `" + recordTypeWithoutModulePrefix + "` not supported, use a reference type instead: "
+                + "`type MyType " + recordTypeWithoutModulePrefix + ";`";
     }
 
     // Get the dimention of given array type

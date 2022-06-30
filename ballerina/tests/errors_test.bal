@@ -92,14 +92,14 @@ public isolated function testMapArrayUnionMemberNotYetSupporteError() returns er
     test:assertEquals(err.message(), expectedErrorMsg);
 }
 
-type RecordWithNonReferencedMapField record {
-    map<int> ages;
-};
-
 public isolated function getErrorMessageForNonReferenceTypes(string typeName) returns string {
     return "Type `" + typeName + "` not supported, use a reference type instead: " 
         + "`type MyType " + typeName + ";`";
 }
+
+type RecordWithNonReferencedMapField record {
+    map<int> ages;
+};
 
 @test:Config {}
 public isolated function testRecordWithNonReferencedMapFieldError() returns error? {
@@ -220,6 +220,24 @@ public isolated function testTupleWithNonReferenceArrayOfTuplesTypeError() retur
 
     Proto3Schema|error ser = new (TupleWithNonReferenceArrayOfTuple);
 
+    test:assertTrue(ser is Error);
+    Error err = <Error> ser;
+    test:assertEquals(err.message(), expectedErrorMsg);
+}
+
+type RecordWithNonReferencedRecordField record {
+    record {
+        string name;
+        int age;
+    } person;
+};
+
+@test:Config {}
+public isolated function testRecordWithNonReferencedRecordFieldError() returns error? {
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("record {| string name; int age; anydata...; |}");
+
+    Proto3Schema|error ser = new(RecordWithNonReferencedRecordField);
+    
     test:assertTrue(ser is Error);
     Error err = <Error> ser;
     test:assertEquals(err.message(), expectedErrorMsg);

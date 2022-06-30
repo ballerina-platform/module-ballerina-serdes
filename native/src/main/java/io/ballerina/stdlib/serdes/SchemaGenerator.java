@@ -58,6 +58,7 @@ import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_TABLE_AS_UNION_MEMBE
 import static io.ballerina.stdlib.serdes.Constants.ATOMIC_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.BOOL;
 import static io.ballerina.stdlib.serdes.Constants.BYTES;
+import static io.ballerina.stdlib.serdes.Constants.CURLY_BRACE;
 import static io.ballerina.stdlib.serdes.Constants.DECIMAL_VALUE;
 import static io.ballerina.stdlib.serdes.Constants.EMPTY_STRING;
 import static io.ballerina.stdlib.serdes.Constants.FAILED_WRITE_FILE;
@@ -622,6 +623,10 @@ public class SchemaGenerator {
 
     private static void generateMessageDefinitionForRecordType(ProtobufMessageBuilder messageBuilder,
                                                                RecordType recordType) {
+        if (recordType.getName().contains(CURLY_BRACE)) {
+            throw createSerdesError(Utils.typeNotSupportedErrorMessage(recordType), SERDES_ERROR);
+        }
+
         Map<String, Field> recordFields = recordType.getFields();
         int fieldNumber = 1;
 
