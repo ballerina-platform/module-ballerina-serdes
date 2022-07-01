@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -56,6 +57,12 @@ public class Utils {
         return "Type `" + type + "` not supported, use a reference type instead: " + "`type MyType " + type + ";`";
     }
 
+    public static String typeNotSupportedErrorMessage(RecordType type) {
+        String recordTypeWithoutModulePrefix = type.toString().split(":")[1];
+        return "Type `" + recordTypeWithoutModulePrefix + "` not supported, use a reference type instead: "
+                + "`type MyType " + recordTypeWithoutModulePrefix + ";`";
+    }
+
     // Get the dimention of given array type
     public static int getArrayDimensions(ArrayType array) {
         int dimension = 1;
@@ -71,14 +78,19 @@ public class Utils {
     }
 
     // Get the basic ballerina type of the given array
-    public static String getElementTypeNameOfBallerinaArray(ArrayType array) {
+    public static Type getElementTypeOfBallerinaArray(ArrayType array) {
         Type basicElementType = array.getElementType();
 
         while (basicElementType.getTag() == TypeTags.ARRAY_TAG) {
             array = (ArrayType) array.getElementType();
             basicElementType = array.getElementType();
         }
-        return basicElementType.getName();
+        return basicElementType;
+    }
+
+    // Get the basic ballerina type name of the given array
+    public static String getElementTypeNameOfBallerinaArray(ArrayType array) {
+        return getElementTypeOfBallerinaArray(array).getName();
     }
 
     // Create protobuf message name for the given ballerina primitive type (string -> StringValue)

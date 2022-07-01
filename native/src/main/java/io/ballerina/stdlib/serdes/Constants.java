@@ -62,10 +62,12 @@ public final class Constants {
     public static final String TABLE_ENTRY = "TableEntry";
     public static final String TUPLE_BUILDER = "TupleBuilder";
     public static final String TUPLE_FIELD_NAME = "element";
+    public static final String RECORD_BUILDER = "RecordBuilder";
 
     public static final String SEPARATOR = "_";
     public static final String TYPE_SEPARATOR = "___";
     public static final String SPACE = " ";
+    public static final String CURLY_BRACE = "{";
 
     // Constants related to protobuf labels and types
     public static final String PROTO3 = "proto3";
@@ -86,15 +88,7 @@ public final class Constants {
     public static final String TABLE_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support table type as union member";
     public static final String ARRAY_OF_MAP_AS_UNION_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support array of maps"
             + " as union member";
-    public static final String ARRAY_OF_MAP_AS_RECORD_FIELD_NOT_YET_SUPPORTED = "Serdes not yet support array of maps"
-            + " as record field";
-    public static final String ARRAY_OF_MAP_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED = "Serdes not yet support array of maps"
-            + " as tuple element";
     public static final String ARRAY_OF_TABLE_AS_UNION_MEMBER_NOT_YET_SUPPORTED = "Serdes not yet support array of"
             + " tables as union member";
-    public static final String ARRAY_OF_TABLE_AS_RECORD_FIELD_NOT_YET_SUPPORTED = "Serdes not yet support array of"
-            + " tables as record field";
-    public static final String ARRAY_OF_TABLE_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED = "Serdes not yet support array of"
-            + " tables as tuple element";
     public static final BString BALLERINA_TYPEDESC_ATTRIBUTE_NAME = StringUtils.fromString("dataType");
 }

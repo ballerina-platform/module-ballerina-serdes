@@ -92,54 +92,9 @@ public isolated function testMapArrayUnionMemberNotYetSupporteError() returns er
     test:assertEquals(err.message(), expectedErrorMsg);
 }
 
-type RecordWithNonReferencedMapField record {
-    map<int> ages;
-};
-
 public isolated function getErrorMessageForNonReferenceTypes(string typeName) returns string {
     return "Type `" + typeName + "` not supported, use a reference type instead: " 
         + "`type MyType " + typeName + ";`";
-}
-
-@test:Config {}
-public isolated function testRecordWithNonReferencedMapFieldError() returns error? {
-    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("map<int>");
-
-    Proto3Schema|error ser = new(RecordWithNonReferencedMapField);
-    
-    test:assertTrue(ser is Error);
-    Error err = <Error> ser;
-    test:assertEquals(err.message(), expectedErrorMsg);
-}
-
-type RecordWithNonReferencedTableField record {
-    table<map<int>> ages;
-};
-
-@test:Config {}
-public isolated function testRecordWithNonReferencedTableFieldError() returns error? {
-    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("table<map<int>>");
-
-    Proto3Schema|error ser = new(RecordWithNonReferencedTableField);
-    
-    test:assertTrue(ser is Error);
-    Error err = <Error> ser;
-    test:assertEquals(err.message(), expectedErrorMsg);
-}
-
-type RecordWithNonReferencedArrayTuple record {
-    [int, int][] field1;
-};
-
-@test:Config {}
-public isolated function testRecordNonReferencedArrayOfTuplesError() returns error? {
-    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("[int,int]");
-
-    Proto3Schema|error ser = new (RecordWithNonReferencedArrayTuple);
-
-    test:assertTrue(ser is Error);
-    Error err = <Error> ser;
-    test:assertEquals(err.message(), expectedErrorMsg);
 }
 
 type TableA table<map<int>>;
@@ -164,22 +119,6 @@ public isolated function testTableArrayUnionMemberNotYetSupporteError() returns 
     string expectedErrorMsg = "Serdes not yet support array of tables as union member";
 
     Proto3Schema|error ser = new(UnionWithArrayOfTables);
-    
-    test:assertTrue(ser is Error);
-    Error err = <Error> ser;
-    test:assertEquals(err.message(), expectedErrorMsg);
-}
-
-type RecordWithMapArrayField record {
-    AgeMap[] ages;
-    MapRecord[] mapRecords;
-};
-
-@test:Config {}
-public isolated function testRecordWithMapArrayNotYetSupportedError() returns error? {
-    string expectedErrorMsg = "Serdes not yet support array of maps as record field";
-
-    Proto3Schema|error ser = new(RecordWithMapArrayField);
     
     test:assertTrue(ser is Error);
     Error err = <Error> ser;
@@ -212,14 +151,14 @@ public isolated function testUnionWithNonReferencedArrayOfTuplesError() returns 
     test:assertEquals(err.message(), expectedErrorMsg);
 }
 
-type TupleWithNonReferenceArrayOfTuple [[int, int][], [boolean, float][]];
+type UnionWithNonReferencedRecordField record {string name; int age;}|int;
 
 @test:Config {}
-public isolated function testTupleWithNonReferenceArrayOfTuplesTypeError() returns error? {
-    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("[int,int]");
+public isolated function testUnionWithNonReferencedRecordMemberError() returns error? {
+    string expectedErrorMsg = getErrorMessageForNonReferenceTypes("record {| string name; int age; anydata...; |}");
 
-    Proto3Schema|error ser = new (TupleWithNonReferenceArrayOfTuple);
-
+    Proto3Schema|error ser = new(UnionWithNonReferencedRecordField);
+    
     test:assertTrue(ser is Error);
     Error err = <Error> ser;
     test:assertEquals(err.message(), expectedErrorMsg);
