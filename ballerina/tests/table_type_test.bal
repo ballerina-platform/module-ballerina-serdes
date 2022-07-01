@@ -168,4 +168,3 @@ public isolated function testTableWithNonReferenceRecord() returns error? {
     TableWihtNonReferenceRocord decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
 }
-  
