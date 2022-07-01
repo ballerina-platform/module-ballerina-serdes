@@ -41,6 +41,7 @@ type RecordWithTableField record {
 };
 
 type MapWithTableConstraint map<ScoreTable>;
+type TableWihtNonReferenceRocord table<record {int id; string name;}>;
 
 @test:Config {}
 public isolated function testTableWithRecord() returns error? {
@@ -130,7 +131,6 @@ public isolated function testTableRecordField() returns error? {
     test:assertEquals(decoded, data);
 }  
 
-
 @test:Config {}
 public isolated function testTableAsMapConstraint() returns error? {
     MapWithTableConstraint data = {
@@ -153,3 +153,18 @@ public isolated function testTableAsMapConstraint() returns error? {
     MapWithTableConstraint decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
 }  
+
+@test:Config {}
+public isolated function testTableWithNonReferenceRecord() returns error? {
+    TableWihtNonReferenceRocord data = table[
+        {id: 1, name: "io"},
+        {id:2, name:"serdes"}
+    ];
+
+    Proto3Schema ser = check new(TableWihtNonReferenceRocord);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new(TableWihtNonReferenceRocord);
+    TableWihtNonReferenceRocord decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}

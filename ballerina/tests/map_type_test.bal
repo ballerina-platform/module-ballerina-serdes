@@ -39,7 +39,13 @@ type RecordWithMapField record {
     AgeMap ages;
 };
 
+type RecordWithNonReferencedMapField record {
+    map<int> ages;
+};
+
 type MapWithTuple map<TupleWithUnion>;
+type MapWithNonReferencedRecord map<record {string name;}>;
+type MapWithNonReferencedRecordArray map<record {string name;}[][]>;
 
 @test:Config{}
 public isolated function testMapInt() returns error? {
@@ -238,6 +244,22 @@ public isolated function testMapFieldinRecord() returns error? {
 }
 
 @test:Config{}
+public isolated function testNonReferencedMapFieldinRecord() returns error? {
+
+    RecordWithNonReferencedMapField data = {
+        ages: {"Tony Hoare": 88}
+    };
+
+    Proto3Schema ser = check new(RecordWithNonReferencedMapField);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(RecordWithNonReferencedMapField);
+    RecordWithNonReferencedMapField decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
 public isolated function testMapWithTupleElement() returns error? {
     MapWithTuple data = {
        "first": ["serdes", 1.2],
@@ -249,6 +271,36 @@ public isolated function testMapWithTupleElement() returns error? {
 
     Proto3Schema des = check new(MapWithTuple);
     MapWithTuple decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapWithNonReferencedRecordElement() returns error? {
+    MapWithNonReferencedRecord data = {
+        "module": {name: "serdes"}
+    };
+
+    Proto3Schema ser = check new(MapWithNonReferencedRecord);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapWithNonReferencedRecord);
+    MapWithNonReferencedRecord decode = check des.deserialize(encode);
+
+    test:assertEquals(decode, data);
+}
+
+@test:Config{}
+public isolated function testMapWithNonReferencedRecordArray() returns error? {
+    MapWithNonReferencedRecordArray data = {
+        "module": [[{name: "serdes"}],[{name: "module"}]]
+    };
+
+    Proto3Schema ser = check new(MapWithNonReferencedRecordArray);
+    byte[] encode = check ser.serialize(data);
+
+    Proto3Schema des = check new(MapWithNonReferencedRecordArray);
+    MapWithNonReferencedRecordArray decode = check des.deserialize(encode);
 
     test:assertEquals(decode, data);
 }

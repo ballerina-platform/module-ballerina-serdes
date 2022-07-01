@@ -49,11 +49,7 @@ import static com.google.protobuf.Descriptors.Descriptor;
 import static com.google.protobuf.Descriptors.DescriptorValidationException;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_BUILDER_NAME;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_FIELD_NAME;
-import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_MAP_AS_RECORD_FIELD_NOT_YET_SUPPORTED;
-import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_MAP_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_MAP_AS_UNION_MEMBER_NOT_YET_SUPPORTED;
-import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_TABLE_AS_RECORD_FIELD_NOT_YET_SUPPORTED;
-import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_TABLE_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED;
 import static io.ballerina.stdlib.serdes.Constants.ARRAY_OF_TABLE_AS_UNION_MEMBER_NOT_YET_SUPPORTED;
 import static io.ballerina.stdlib.serdes.Constants.ATOMIC_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.BOOL;
@@ -72,6 +68,7 @@ import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.OPTIONAL_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.PRECISION;
 import static io.ballerina.stdlib.serdes.Constants.PROTO3;
+import static io.ballerina.stdlib.serdes.Constants.RECORD_BUILDER;
 import static io.ballerina.stdlib.serdes.Constants.REPEATED_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.SCALE;
 import static io.ballerina.stdlib.serdes.Constants.SCHEMA_GENERATION_FAILURE;
@@ -353,6 +350,10 @@ public class SchemaGenerator {
                     RecordType recordType = (RecordType) referredMemberType;
                     String nestedMessageName = recordType.getName();
 
+                    if (isNonReferencedRecordType(recordType)) {
+                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(recordType), SERDES_ERROR);
+                    }
+
                     // Check for cyclic reference in ballerina record
                     boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
                     if (!hasMessageDefinition) {
@@ -493,9 +494,14 @@ public class SchemaGenerator {
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
                 } else if (isRecordField || isTupleElement) {
-                    String ballerinaType = Utils.getElementTypeNameOfBallerinaArray(nestedArrayType);
+                    Type ballerinaType = Utils.getElementTypeOfBallerinaArray(nestedArrayType);
                     nestedMessageName = ARRAY_BUILDER_NAME + SEPARATOR + (dimension - 1);
-                    nestedMessageName = ballerinaType + TYPE_SEPARATOR + nestedMessageName;
+                    if (ballerinaType.getTag() == TypeTags.MAP_TAG || ballerinaType.getTag() == TypeTags.TABLE_TAG
+                            || isNonReferencedRecordType(ballerinaType)) {
+                        nestedMessageName = fieldName + TYPE_SEPARATOR + nestedMessageName;
+                    } else {
+                        nestedMessageName = ballerinaType.getName() + TYPE_SEPARATOR + nestedMessageName;
+                    }
                 }
 
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
@@ -511,11 +517,15 @@ public class SchemaGenerator {
 
             case TypeTags.RECORD_TYPE_TAG: {
                 RecordType recordType = (RecordType) referredElementType;
-                String nestedMessageName = recordType.getName();
+                // if not a referenced recordType use "RecordBuilder" as message name
+                String nestedMessageName = isNonReferencedRecordType(recordType) ? RECORD_BUILDER :
+                        recordType.getName();
 
                 if (isUnionMember) {
                     String ballerinaType = recordType.getName();
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
+                } else if (isNonReferencedRecordType(recordType) && (isRecordField || isTupleElement)) {
+                    nestedMessageName = fieldName + TYPE_SEPARATOR + nestedMessageName;
                 }
 
                 // Check for cyclic reference in ballerina record
@@ -538,12 +548,8 @@ public class SchemaGenerator {
                 if (isUnionMember) {
                     // TODO: support array of map as union member
                     throw createSerdesError(ARRAY_OF_MAP_AS_UNION_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
-                } else if (isRecordField) {
-                    // TODO: support array of map as record field
-                    throw createSerdesError(ARRAY_OF_MAP_AS_RECORD_FIELD_NOT_YET_SUPPORTED, SERDES_ERROR);
-                } else if (isTupleElement) {
-                    // TODO: support array of map as tuple element
-                    throw createSerdesError(ARRAY_OF_MAP_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED, SERDES_ERROR);
+                } else if (isRecordField || isTupleElement) {
+                    nestedMessageName = fieldName + TYPE_SEPARATOR + nestedMessageName;
                 }
 
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
@@ -558,19 +564,15 @@ public class SchemaGenerator {
 
             case TypeTags.TABLE_TAG: {
                 TableType tableType = (TableType) referredElementType;
+                String nestedMessageName = TABLE_BUILDER;
 
                 if (isUnionMember) {
                     // TODO: support array of table union member
                     throw createSerdesError(ARRAY_OF_TABLE_AS_UNION_MEMBER_NOT_YET_SUPPORTED, SERDES_ERROR);
-                } else if (isRecordField) {
-                    // TODO: support array of table as record field
-                    throw createSerdesError(ARRAY_OF_TABLE_AS_RECORD_FIELD_NOT_YET_SUPPORTED, SERDES_ERROR);
-                } else if (isTupleElement) {
-                    // TODO: support array of table as tuple element
-                    throw createSerdesError(ARRAY_OF_TABLE_AS_TUPLE_ELEMENT_NOT_YET_SUPPORTED, SERDES_ERROR);
+                } else if (isRecordField || isTupleElement) {
+                    nestedMessageName = fieldName + TYPE_SEPARATOR + nestedMessageName;
                 }
 
-                String nestedMessageName = TABLE_BUILDER;
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
                 generateMessageDefinitionForTableType(nestedMessageBuilder, tableType);
                 messageBuilder.addNestedMessage(nestedMessageBuilder);
@@ -592,18 +594,8 @@ public class SchemaGenerator {
                     }
                     nestedMessageName = ballerinaType + TYPE_SEPARATOR + TUPLE_BUILDER;
                     fieldName = ballerinaType + TYPE_SEPARATOR + fieldName + TYPE_SEPARATOR + UNION_FIELD_NAME;
-                } else if (isRecordField) {
-                    String ballerinaType = referredElementType.getName();
-                    if (ballerinaType.equals(EMPTY_STRING)) {
-                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(tupleType), SERDES_ERROR);
-                    }
-                    nestedMessageName = ballerinaType + TYPE_SEPARATOR + TUPLE_BUILDER;
-                } else if (isTupleElement) {
-                    String ballerinaType = referredElementType.getName();
-                    if (ballerinaType.equals(EMPTY_STRING)) {
-                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(tupleType), SERDES_ERROR);
-                    }
-                    nestedMessageName = ballerinaType + TYPE_SEPARATOR + TUPLE_BUILDER;
+                } else if (isRecordField || isTupleElement) {
+                    nestedMessageName = fieldName + TYPE_SEPARATOR + nestedMessageName;
                 }
 
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName);
@@ -623,10 +615,6 @@ public class SchemaGenerator {
 
     private static void generateMessageDefinitionForRecordType(ProtobufMessageBuilder messageBuilder,
                                                                RecordType recordType) {
-        if (recordType.getName().contains(CURLY_BRACE)) {
-            throw createSerdesError(Utils.typeNotSupportedErrorMessage(recordType), SERDES_ERROR);
-        }
-
         Map<String, Field> recordFields = recordType.getFields();
         int fieldNumber = 1;
 
@@ -687,9 +675,10 @@ public class SchemaGenerator {
 
                 case TypeTags.RECORD_TYPE_TAG: {
                     RecordType nestedRecordType = (RecordType) referredFieldEntryType;
-                    String nestedMessageName = nestedRecordType.getName();
-                    boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
+                    String nestedMessageName = isNonReferencedRecordType(nestedRecordType) ?
+                            fieldEntryName + TYPE_SEPARATOR + RECORD_BUILDER : nestedRecordType.getName();
 
+                    boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
                     // Check for cyclic reference in ballerina record
                     if (!hasMessageDefinition) {
                         ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
@@ -705,11 +694,7 @@ public class SchemaGenerator {
                 }
 
                 case TypeTags.MAP_TAG: {
-                    if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(fieldEntryType), SERDES_ERROR);
-                    }
-
-                    String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + MAP_BUILDER;
+                    String nestedMessageName = fieldEntryName + TYPE_SEPARATOR + MAP_BUILDER;
                     ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
                             messageBuilder);
                     generateMessageDefinitionForMapType(nestedMessageBuilder, (MapType) referredFieldEntryType);
@@ -722,11 +707,7 @@ public class SchemaGenerator {
                 }
 
                 case TypeTags.TABLE_TAG: {
-                    if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(fieldEntryType), SERDES_ERROR);
-                    }
-
-                    String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + TABLE_BUILDER;
+                    String nestedMessageName = fieldEntryName + TYPE_SEPARATOR + TABLE_BUILDER;
                     ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
                             messageBuilder);
                     generateMessageDefinitionForTableType(nestedMessageBuilder, (TableType) referredFieldEntryType);
@@ -739,11 +720,7 @@ public class SchemaGenerator {
                 }
 
                 case TypeTags.TUPLE_TAG: {
-                    if (fieldEntryType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(fieldEntryType), SERDES_ERROR);
-                    }
-
-                    String nestedMessageName = fieldEntryType.getName() + TYPE_SEPARATOR + TUPLE_BUILDER;
+                    String nestedMessageName = fieldEntryName + TYPE_SEPARATOR + TUPLE_BUILDER;
                     ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
                             messageBuilder);
                     generateMessageDefinitionForTupleType(nestedMessageBuilder, (TupleType) referredFieldEntryType);
@@ -761,7 +738,6 @@ public class SchemaGenerator {
             fieldNumber++;
         }
     }
-
 
     private static void generateMessageDefinitionForMapType(ProtobufMessageBuilder messageBuilder, MapType mapType) {
         ProtobufMessageBuilder mapEntryBuilder = new ProtobufMessageBuilder(MAP_FIELD_ENTRY);
@@ -817,7 +793,7 @@ public class SchemaGenerator {
             case TypeTags.ARRAY_TAG: {
                 ArrayType arrayType = (ArrayType) referredConstrainedType;
                 int dimention = Utils.getArrayDimensions(arrayType);
-                boolean isRecordField = true;
+                boolean isRecordField = false;
                 generateMessageDefinitionForArrayType(mapEntryBuilder, arrayType, VALUE_NAME, valueFieldNumber,
                         dimention, isRecordField);
                 break;
@@ -825,7 +801,8 @@ public class SchemaGenerator {
 
             case TypeTags.RECORD_TYPE_TAG: {
                 RecordType nestedRecordType = (RecordType) referredConstrainedType;
-                String nestedMessageName = nestedRecordType.getName();
+                String nestedMessageName = isNonReferencedRecordType(nestedRecordType) ? RECORD_BUILDER :
+                        nestedRecordType.getName();
                 boolean hasMessageDefinition = mapEntryBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
 
                 // Check for cyclic reference in ballerina record
@@ -906,7 +883,8 @@ public class SchemaGenerator {
         switch (referredConstrainedType.getTag()) {
             case TypeTags.RECORD_TYPE_TAG: {
                 RecordType nestedRecordType = (RecordType) referredConstrainedType;
-                String nestedMessageName = nestedRecordType.getName();
+                String nestedMessageName = isNonReferencedRecordType(nestedRecordType) ? RECORD_BUILDER :
+                        nestedRecordType.getName();
 
                 ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(nestedMessageName,
                         messageBuilder);
@@ -997,7 +975,8 @@ public class SchemaGenerator {
 
                 case TypeTags.RECORD_TYPE_TAG: {
                     RecordType nestedRecordType = (RecordType) referredTupleElementType;
-                    String nestedMessageName = nestedRecordType.getName();
+                    String nestedMessageName = isNonReferencedRecordType(nestedRecordType) ?
+                            fieldName + TYPE_SEPARATOR + RECORD_BUILDER : nestedRecordType.getName();
                     boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
 
                     // Check for cyclic reference in ballerina record
@@ -1063,5 +1042,9 @@ public class SchemaGenerator {
             }
             elementFieldNumber++;
         }
+    }
+
+    private static boolean isNonReferencedRecordType(Type ballerinaType) {
+        return ballerinaType.getName().contains(CURLY_BRACE);
     }
 }
