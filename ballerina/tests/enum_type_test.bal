@@ -18,7 +18,7 @@ import ballerina/test;
 
 enum Color {
     RED,
-    GREAN,
+    GREEN,
     BLUE
 }
 
