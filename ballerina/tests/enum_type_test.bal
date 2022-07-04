@@ -17,14 +17,15 @@
 import ballerina/test;
 
 enum Color {
-    RED,
+    RED="red",
     GREEN,
     BLUE
 }
 
 const OPEN = "open";
 const CLOSE = "close";
-type STATE OPEN|CLOSE;
+type State OPEN|CLOSE;
+type OptionalState OPEN|CLOSE?;
 
 type RecordWithEnum record {
     Color color;
@@ -33,10 +34,9 @@ type RecordWithEnum record {
 type MapWithEnum map<Color>;
 
 @test:Config {}
-public isolated function testBasicEnumType()returns error? {
+public isolated function testBasicEnumType() returns error? {
     Color data = RED;
     Proto3Schema ser = check new (Color);
-    check ser.generateProtoFile("Color.proto");
     byte[] encoded = check ser.serialize(data);
 
     Proto3Schema des = check new (Color);
@@ -46,13 +46,12 @@ public isolated function testBasicEnumType()returns error? {
 
 @test:Config {}
 public isolated function testBasicEnumType2()returns error? {
-    STATE data = OPEN;
-    Proto3Schema ser = check new (STATE);
-    check ser.generateProtoFile("STATE.proto");
+    State data = OPEN;
+    Proto3Schema ser = check new (State);
     byte[] encoded = check ser.serialize(data);
 
-    Proto3Schema des = check new (STATE);
-    STATE decoded = check des.deserialize(encoded);
+    Proto3Schema des = check new (State);
+    State decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
 }
 
@@ -60,7 +59,6 @@ public isolated function testBasicEnumType2()returns error? {
 public isolated function testRecordWithEnumField()returns error? {
     RecordWithEnum data = {color: RED};
     Proto3Schema ser = check new (RecordWithEnum);
-    check ser.generateProtoFile("RecordWithEnum.proto");
     byte[] encoded = check ser.serialize(data);
 
     Proto3Schema des = check new (RecordWithEnum);
@@ -72,10 +70,20 @@ public isolated function testRecordWithEnumField()returns error? {
 public isolated function testMapWithEnumConstraint()returns error? {
     MapWithEnum data = {"color": RED};
     Proto3Schema ser = check new (MapWithEnum);
-    check ser.generateProtoFile("MapWithEnum.proto");
     byte[] encoded = check ser.serialize(data);
 
     Proto3Schema des = check new (MapWithEnum);
     MapWithEnum decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testEnumWithOptional()returns error? {
+    OptionalState data = ();
+    Proto3Schema ser = check new (OptionalState);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (OptionalState);
+    OptionalState decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
 }
