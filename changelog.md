@@ -13,3 +13,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [[#3032] Add support to ballerina map type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3032)
 - [[#3043] Add support to ballerina table type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3043)
 - [[#3046] Add support to ballerina tuple type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3046)
+- [[#3052] Add support enum type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3052)

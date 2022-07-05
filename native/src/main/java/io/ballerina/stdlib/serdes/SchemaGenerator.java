@@ -256,6 +256,12 @@ public class SchemaGenerator {
             return Map.entry(key, type);
         }
 
+        // Handle enum members
+        if (referredType.getTag() == TypeTags.FINITE_TYPE_TAG
+                && TypeUtils.getType(referredType.getEmptyValue()).getTag() == TypeTags.STRING_TAG) {
+            return Map.entry(((BString) referredType.getEmptyValue()).getValue(), type);
+        }
+
         if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)
                 || referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
@@ -329,6 +335,15 @@ public class SchemaGenerator {
                     String protoType = DataTypeMapper.mapBallerinaTypeToProtoType(referredMemberType.getTag());
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
                             protoType, fieldName, fieldNumber);
+                    messageBuilder.addField(messageField);
+                    break;
+                }
+
+                // Handle enum members
+                case TypeTags.FINITE_TYPE_TAG: {
+                    fieldName = ((BString) referredMemberType.getEmptyValue()).getValue();
+                    ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL, STRING,
+                            fieldName, fieldNumber);
                     messageBuilder.addField(messageField);
                     break;
                 }
