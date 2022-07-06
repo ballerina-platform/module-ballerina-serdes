@@ -7,7 +7,7 @@ Ballerina SerDes Library
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-serdes/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-serdes)
 
-This SerDes library provides APIs for serializing and deserializing subtypes of Ballerina anydata type.
+This library provides APIs for serializing and deserializing subtypes of Ballerina anydata type.
 
 ## Issues and Projects
 
