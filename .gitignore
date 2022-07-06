@@ -36,9 +36,5 @@ hs_err_pid*
 target
 build
 
-# Unused toml files
-Dependencies.toml
-
-
 # Generated proto files
 ballerina/*.proto
