@@ -10,13 +10,13 @@ artifactId = "serdes"
 version = "0.1.0-SNAPSHOT"
 
 [[platform.java11.dependency]]
-path = "./lib/protobuf-java-3.14.0.jar"
+path = "./lib/protobuf-java-3.21.2.jar"
 groupId = "com.google.protobuf"
 artifactId = "protobuf-java"
-version = "3.14.0"
+version = "3.21.2"
 
 [[platform.java11.dependency]]
-path = "./lib/protobuf-java-util-3.14.0.jar"
+path = "./lib/protobuf-java-util-3.21.2.jar"
 groupId = "com.google.protobuf"
 artifactId = "protobuf-java-util"
-version = "3.14.0"
+version = "3.21.2"
