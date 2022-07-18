@@ -2,6 +2,7 @@
 org = "ballerina"
 name = "serdes"
 version = "0.1.0"
+distribution = "2201.2.0"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/serdes-native-0.1.0-SNAPSHOT.jar"
