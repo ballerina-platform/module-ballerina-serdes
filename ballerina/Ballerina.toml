@@ -21,9 +21,3 @@ path = "./lib/protobuf-java-util-3.21.2.jar"
 groupId = "com.google.protobuf"
 artifactId = "protobuf-java-util"
 version = "3.21.2"
-
-[[platform.java11.dependency]]
-groupId = "io.ballerina.stdlib"
-artifactId = "io-native"
-version = "1.3.0-20220720-110800-3bbc805"
-path = "./lib/io-native-@io.native.version@.jar"
