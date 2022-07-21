@@ -28,33 +28,10 @@ import java.util.Map;
  */
 public class DataTypeMapper {
 
-    private static final Map<String, String> javaTypeToProto = new HashMap<>();
     private static final Map<Integer, String> ballerinaTypeTagToProto = new HashMap<>();
-    private static final Map<String, String> javaTypeToBallerinaType = new HashMap<>();
     private static final Map<String, String> ballerinaPrimitiveType = new HashMap<>();
 
     static {
-        javaTypeToProto.put("Double", "double");
-        javaTypeToProto.put("Float", "double");
-        javaTypeToProto.put("DecimalValue", "DecimalValue");
-        javaTypeToProto.put("Integer", "sint64");
-        javaTypeToProto.put("Long", "sint64");
-        javaTypeToProto.put("Boolean", "bool");
-        javaTypeToProto.put("String", "string");
-        javaTypeToProto.put("BmpStringValue", "string");
-        javaTypeToProto.put("Byte", "bytes");
-
-        javaTypeToBallerinaType.put("Double", "float");
-        javaTypeToBallerinaType.put("Float", "float");
-        javaTypeToBallerinaType.put("Short", "byte");
-        javaTypeToBallerinaType.put("Integer", "byte");
-        javaTypeToBallerinaType.put("Long", "int");
-        javaTypeToBallerinaType.put("Boolean", "boolean");
-        javaTypeToBallerinaType.put("String", "string");
-        javaTypeToBallerinaType.put("BmpStringValue", "string");
-        javaTypeToBallerinaType.put("Byte", "bytes");
-        javaTypeToBallerinaType.put("DecimalValue", "decimal");
-
         ballerinaTypeTagToProto.put(TypeTags.INT_TAG, "sint64");
         ballerinaTypeTagToProto.put(TypeTags.BYTE_TAG, "bytes");
         ballerinaTypeTagToProto.put(TypeTags.FLOAT_TAG, "double");
@@ -70,19 +47,14 @@ public class DataTypeMapper {
         ballerinaPrimitiveType.put("float", "float");
     }
 
+    private DataTypeMapper() {
+    }
+
     public static String mapBallerinaTypeToProtoType(int ballerinaTypeTag) {
         return ballerinaTypeTagToProto.get(ballerinaTypeTag);
     }
 
     public static boolean isValidBallerinaPrimitiveType(String typeName) {
         return ballerinaPrimitiveType.get(typeName) != null;
-    }
-
-    public static boolean isValidJavaType(String javaType) {
-        return javaTypeToProto.containsKey(javaType);
-    }
-
-    public static String mapJavaTypeToBallerinaType(String javaType) {
-        return javaTypeToBallerinaType.get(javaType);
     }
 }

@@ -26,9 +26,12 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 
 import java.util.Locale;
+
+import static io.ballerina.stdlib.serdes.Constants.CURLY_BRACE;
 
 /**
  * Utility functions of SerDes module.
@@ -66,11 +69,10 @@ public class Utils {
     // Get the dimention of given array type
     public static int getArrayDimensions(ArrayType array) {
         int dimension = 1;
-        Type basicElementType = array.getElementType();
-
+        Type basicElementType = TypeUtils.getReferredType(array.getElementType());
         while (basicElementType.getTag() == TypeTags.ARRAY_TAG) {
-            array = (ArrayType) array.getElementType();
-            basicElementType = array.getElementType();
+            array = (ArrayType) TypeUtils.getReferredType(array.getElementType());
+            basicElementType = TypeUtils.getReferredType(array.getElementType());
             dimension++;
         }
 
@@ -78,19 +80,22 @@ public class Utils {
     }
 
     // Get the basic ballerina type of the given array
-    public static Type getElementTypeOfBallerinaArray(ArrayType array) {
-        Type basicElementType = array.getElementType();
-
+    public static Type getBaseElementTypeOfBallerinaArray(ArrayType array) {
+        Type basicElementType = TypeUtils.getReferredType(array.getElementType());
         while (basicElementType.getTag() == TypeTags.ARRAY_TAG) {
-            array = (ArrayType) array.getElementType();
-            basicElementType = array.getElementType();
+            array = (ArrayType) TypeUtils.getReferredType(array.getElementType());
+            basicElementType = TypeUtils.getReferredType(array.getElementType());
         }
         return basicElementType;
     }
 
     // Get the basic ballerina type name of the given array
-    public static String getElementTypeNameOfBallerinaArray(ArrayType array) {
-        return getElementTypeOfBallerinaArray(array).getName();
+    public static String getBaseElementTypeNameOfBallerinaArray(ArrayType array) {
+        return getBaseElementTypeOfBallerinaArray(array).getName();
+    }
+
+    public static boolean isAnonymousBallerinaRecord(Type ballerinaType) {
+        return ballerinaType.getName().contains(CURLY_BRACE);
     }
 
     // Create protobuf message name for the given ballerina primitive type (string -> StringValue)

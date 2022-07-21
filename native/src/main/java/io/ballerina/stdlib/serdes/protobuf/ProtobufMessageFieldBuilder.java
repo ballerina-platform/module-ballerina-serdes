@@ -77,8 +77,8 @@ public class ProtobufMessageFieldBuilder {
 
     public String toString(String indentation) {
         String fieldLabel = getFieldLabel().equals(REPEATED_LABEL) ? REPEATED_LABEL + SPACE : EMPTY_STRING;
-        return indentation + SPACE + fieldLabel + getFieldType() + SPACE + getFieldName() + SPACE
-                + " = " + getFieldNumber() + ";\n";
+        return indentation + SPACE + fieldLabel + getFieldType() + SPACE + getFieldName() + SPACE + " = "
+                + getFieldNumber() + ";\n";
     }
 
 }

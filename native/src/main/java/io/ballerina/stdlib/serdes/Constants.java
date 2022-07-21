@@ -32,12 +32,7 @@ public final class Constants {
 
     // Constants related to ballerina type
     public static final String STRING = "string";
-    public static final String BYTE = "byte";
-    public static final String DECIMAL = "decimal";
     public static final String NIL = "()";
-
-    // Constants related to java type
-    public static final String INTEGER = "Integer";
 
     // Constants related to protobuf schema
     public static final String SCHEMA_NAME = "schema";
@@ -59,7 +54,7 @@ public final class Constants {
     public static final String KEY_NAME = "key";
     public static final String VALUE_NAME = "value";
     public static final String TABLE_BUILDER = "TableBuilder";
-    public static final String TABLE_ENTRY = "TableEntry";
+    public static final String TABLE_ENTRY = "tableEntry";
     public static final String TUPLE_BUILDER = "TupleBuilder";
     public static final String TUPLE_FIELD_NAME = "element";
     public static final String RECORD_BUILDER = "RecordBuilder";
