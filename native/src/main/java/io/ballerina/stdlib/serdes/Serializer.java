@@ -221,12 +221,6 @@ public class Serializer {
                 fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
             }
 
-            // Handle enum value
-            if (fieldDescriptor == null && DataTypeMapper.mapJavaTypeToBallerinaType(javaType).equals(STRING)) {
-                fieldName = ((BString) anydata).getValue();
-                fieldDescriptor = messageDescriptor.findFieldByName(fieldName);
-            }
-
             return generateMessageForPrimitiveType(messageBuilder, fieldDescriptor, anydata, ballerinaType);
         }
 
@@ -240,7 +234,7 @@ public class Serializer {
                 Builder tupleMessageBuilder = DynamicMessage.newBuilder(tupleSchema);
                 generateMessageForTupleType(tupleMessageBuilder, bArray);
                 messageBuilder.setField(tupleFieldDescriptor, tupleMessageBuilder.build());
-                 return messageBuilder;
+                return messageBuilder;
             } else {
                 // Handle ballerina array
                 ballerinaType = bArray.getElementType().getName();

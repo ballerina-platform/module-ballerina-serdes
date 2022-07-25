@@ -54,6 +54,13 @@ type TupleB [boolean, decimal];
 type UnionOfTuples TupleA | TupleB;
 type UnionOfTupleArrays TupleA[] | TupleB[];
 
+const OPTION1 = 1;
+const OPTION2 = 1.3;
+const decimal OPTION3 = 2e10d;
+const OPTION4 = true;
+
+type Options OPTION1 | OPTION2 | OPTION3 | OPTION4;
+
 @test:Config {}
 public isolated function testPrimitiveUnion() returns error? {
     PrimitiveUnion nums = 3.9d;
@@ -173,5 +180,16 @@ public isolated function testUnionOfTupleArrays() returns error? {
 
     Proto3Schema des = check new (UnionOfTupleArrays);
     UnionOfTupleArrays decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testUnionWithConstantValues()returns error? {
+    Options data = OPTION3;
+    Proto3Schema ser = check new (Options);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (Options);
+    Options decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
 }

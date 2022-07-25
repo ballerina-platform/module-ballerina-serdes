@@ -257,15 +257,23 @@ public class SchemaGenerator {
         }
 
         // Handle enum members
-        if (referredType.getTag() == TypeTags.FINITE_TYPE_TAG
-                && TypeUtils.getType(referredType.getEmptyValue()).getTag() == TypeTags.STRING_TAG) {
-            return Map.entry(((BString) referredType.getEmptyValue()).getValue(), type);
+        if (referredType.getTag() == TypeTags.FINITE_TYPE_TAG) {
+            Type finiteValueType = TypeUtils.getType(referredType.getEmptyValue());
+            typeName = TypeUtils.getReferredType(finiteValueType).getName();
         }
 
-        if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)
-                || referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+        if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)) {
             String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
             return Map.entry(key, type);
+        }
+
+        if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+            if (!isNonReferencedRecordType(referredType)) {
+                String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
+                return Map.entry(key, type);
+            } else {
+                throw createSerdesError(Utils.typeNotSupportedErrorMessage((RecordType) referredType), SERDES_ERROR);
+            }
         }
 
         if (typeName.equals(NIL)) {
@@ -298,17 +306,19 @@ public class SchemaGenerator {
                                                               UnionType unionType) {
         int fieldNumber = 1;
 
-        List<Type> memberTypes = unionType.getMemberTypes().stream().map(SchemaGenerator::mapUnionMemberToMapEntry)
-                .sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.toList());
+        List<Map.Entry<String, Type>> memberTypes = unionType.getMemberTypes().stream()
+                .map(SchemaGenerator::mapUnionMemberToMapEntry).sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toList());
 
         // Member field names are prefixed with ballerina type name to avoid name collision in proto message definition
-        for (Type memberType : memberTypes) {
+        for (Map.Entry<String, Type> memberEntry : memberTypes) {
+            Type memberType = memberEntry.getValue();
+            String fieldName = memberEntry.getKey();
             Type referredMemberType = TypeUtils.getReferredType(memberType);
-            String fieldName;
+
 
             switch (referredMemberType.getTag()) {
                 case TypeTags.NULL_TAG: {
-                    fieldName = NULL_FIELD_NAME;
                     ProtobufMessageFieldBuilder nilField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL, BOOL,
                             fieldName, fieldNumber);
                     messageBuilder.addField(nilField);
@@ -320,7 +330,6 @@ public class SchemaGenerator {
                 case TypeTags.FLOAT_TAG:
                 case TypeTags.STRING_TAG:
                 case TypeTags.BOOLEAN_TAG: {
-                    fieldName = referredMemberType.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
                     generateMessageDefinitionForPrimitiveType(messageBuilder, referredMemberType, fieldName,
                             fieldNumber);
                     break;
@@ -331,7 +340,6 @@ public class SchemaGenerator {
                     generateMessageDefinitionForPrimitiveDecimal(nestedMessageBuilder);
                     messageBuilder.addNestedMessage(nestedMessageBuilder);
 
-                    fieldName = referredMemberType.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
                     String protoType = DataTypeMapper.mapBallerinaTypeToProtoType(referredMemberType.getTag());
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
                             protoType, fieldName, fieldNumber);
@@ -341,9 +349,15 @@ public class SchemaGenerator {
 
                 // Handle enum members
                 case TypeTags.FINITE_TYPE_TAG: {
-                    fieldName = ((BString) referredMemberType.getEmptyValue()).getValue();
-                    ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL, STRING,
-                            fieldName, fieldNumber);
+                    referredMemberType = TypeUtils.getType(referredMemberType.getEmptyValue());
+                    String protoType = DataTypeMapper.mapBallerinaTypeToProtoType(referredMemberType.getTag());
+                    if (referredMemberType.getTag() == TypeTags.DECIMAL_TAG) {
+                        ProtobufMessageBuilder nestedMessageBuilder = new ProtobufMessageBuilder(DECIMAL_VALUE);
+                        generateMessageDefinitionForPrimitiveDecimal(nestedMessageBuilder);
+                        messageBuilder.addNestedMessage(nestedMessageBuilder);
+                    }
+                    ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
+                            protoType, fieldName, fieldNumber);
                     messageBuilder.addField(messageField);
                     break;
                 }
@@ -365,10 +379,6 @@ public class SchemaGenerator {
                     RecordType recordType = (RecordType) referredMemberType;
                     String nestedMessageName = recordType.getName();
 
-                    if (isNonReferencedRecordType(recordType)) {
-                        throw createSerdesError(Utils.typeNotSupportedErrorMessage(recordType), SERDES_ERROR);
-                    }
-
                     // Check for cyclic reference in ballerina record
                     boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(nestedMessageName);
                     if (!hasMessageDefinition) {
@@ -378,7 +388,6 @@ public class SchemaGenerator {
                         messageBuilder.addNestedMessage(nestedMessageBuilder);
                     }
 
-                    fieldName = recordType.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
                             nestedMessageName, fieldName, fieldNumber);
                     messageBuilder.addField(messageField);
@@ -395,7 +404,6 @@ public class SchemaGenerator {
                     generateMessageDefinitionForTupleType(nestedMessageBuilder, tupleType);
                     messageBuilder.addNestedMessage(nestedMessageBuilder);
 
-                    fieldName = tupleType.getName() + TYPE_SEPARATOR + UNION_FIELD_NAME;
                     ProtobufMessageFieldBuilder messageField = new ProtobufMessageFieldBuilder(OPTIONAL_LABEL,
                             nestedMessageName, fieldName, fieldNumber);
                     messageBuilder.addField(messageField);

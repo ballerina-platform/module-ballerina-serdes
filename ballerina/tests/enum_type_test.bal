@@ -17,7 +17,7 @@
 import ballerina/test;
 
 enum Color {
-    RED="red",
+    RED,
     GREEN,
     BLUE
 }
@@ -32,6 +32,16 @@ type RecordWithEnum record {
 };
 
 type MapWithEnum map<Color>;
+
+enum Region {
+    NA = "NA",
+    APAC = "APAC", 
+    MEA = "MEA",
+    ANZ = "ANZ",
+    EU1 = "EU 1",
+    EU2 = "EU 2",
+    EU3 = "EU 3"
+}
 
 @test:Config {}
 public isolated function testBasicEnumType() returns error? {
@@ -85,5 +95,16 @@ public isolated function testEnumWithOptional()returns error? {
 
     Proto3Schema des = check new (OptionalState);
     OptionalState decoded = check des.deserialize(encoded);
+    test:assertEquals(decoded, data);
+}
+
+@test:Config {}
+public isolated function testEnumWithStringValues()returns error? {
+    Region data = EU3;
+    Proto3Schema ser = check new (Region);
+    byte[] encoded = check ser.serialize(data);
+
+    Proto3Schema des = check new (Region);
+    Region decoded = check des.deserialize(encoded);
     test:assertEquals(decoded, data);
 }
