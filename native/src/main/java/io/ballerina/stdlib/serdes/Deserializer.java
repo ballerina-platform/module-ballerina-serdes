@@ -375,7 +375,7 @@ public class Deserializer {
                     ArrayType arrayType = (ArrayType) referredEntryFieldType;
                     Descriptor recordSchema = fieldDescriptor.getContainingType();
 
-                    Type basicType = Utils.getElementTypeOfBallerinaArray(arrayType);
+                    Type basicType = Utils.getBaseElementTypeOfBallerinaArray(arrayType);
                     String prefixName = isMapTableOrNonReferencedRecord(basicType) ? entryFieldName :
                             basicType.getName();
                     int dimention = Utils.getArrayDimensions(arrayType);
@@ -570,7 +570,7 @@ public class Deserializer {
                     Descriptor recordSchema = tupleField.getKey().getContainingType();
 
 
-                    Type basicType = Utils.getElementTypeOfBallerinaArray(arrayType);
+                    Type basicType = Utils.getBaseElementTypeOfBallerinaArray(arrayType);
                     String prefixName = isMapTableOrNonReferencedRecord(basicType) ?
                             TUPLE_FIELD_NAME + SEPARATOR + (tupleElementIndex + 1) : basicType.getName();
                     int dimention = Utils.getArrayDimensions(arrayType);
@@ -652,7 +652,7 @@ public class Deserializer {
         for (Type memberType : unionType.getMemberTypes()) {
             memberType = TypeUtils.getReferredType(memberType);
             if (memberType.getTag() == TypeTags.ARRAY_TAG) {
-                String arrayBasicType = Utils.getElementTypeNameOfBallerinaArray((ArrayType) memberType);
+                String arrayBasicType = Utils.getBaseElementTypeNameOfBallerinaArray((ArrayType) memberType);
                 int arrayDimention = Utils.getArrayDimensions((ArrayType) memberType);
                 if (arrayDimention == dimention && arrayBasicType.equals(targetBallerinaTypeName)) {
                     targetArrayType = (ArrayType) memberType;

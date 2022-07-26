@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.serdes.protobuf;
 
+import com.google.protobuf.DescriptorProtos.DescriptorProto.Builder;
+
 import java.util.Comparator;
 import java.util.HashMap;
 
@@ -28,7 +30,7 @@ import static com.google.protobuf.DescriptorProtos.DescriptorProto;
  */
 public class ProtobufMessageBuilder {
 
-    private final DescriptorProto.Builder messageDescriptorProtoBuilder;
+    private final Builder messageDescriptorProtoBuilder;
     private final HashMap<String, ProtobufMessageBuilder> nestedMessages = new HashMap<>();
     private final HashMap<String, ProtobufMessageFieldBuilder> messageFields = new HashMap<>();
     private final String messageName;
@@ -49,7 +51,7 @@ public class ProtobufMessageBuilder {
         return messageName;
     }
 
-    public DescriptorProto.Builder getProtobufMessage() {
+    public Builder getProtobufMessage() {
         return messageDescriptorProtoBuilder;
     }
 
@@ -62,7 +64,7 @@ public class ProtobufMessageBuilder {
     }
 
     public void addNestedMessage(ProtobufMessageBuilder nestedMessage) {
-        DescriptorProto.Builder nestedProtobufMessage = nestedMessage.getProtobufMessage();
+        Builder nestedProtobufMessage = nestedMessage.getProtobufMessage();
         boolean isDefined = nestedMessages.get(nestedMessage.getName()) != null;
         if (!isDefined) {
             messageDescriptorProtoBuilder.addNestedType(nestedProtobufMessage);
@@ -83,19 +85,18 @@ public class ProtobufMessageBuilder {
         return toString("");
     }
 
-    public String toString(String space) {
+    private String toString(String space) {
         String protoStart = space + "message " + messageName + " {\n";
         String levelSpace = space + "  ";
         StringBuilder msgContent = new StringBuilder();
 
         // Build string for nested types
-        nestedMessages.values().forEach(
-                nestedMessage -> msgContent.append(nestedMessage.toString(levelSpace)).append("\n"));
+        nestedMessages.values()
+                .forEach(nestedMessage -> msgContent.append(nestedMessage.toString(levelSpace)).append("\n"));
 
         // Build string for field
-        messageFields.values().stream().sorted(
-                Comparator.comparingInt(ProtobufMessageFieldBuilder::getFieldNumber)).forEach(
-                messageField -> msgContent.append(messageField.toString(levelSpace)));
+        messageFields.values().stream().sorted(Comparator.comparingInt(ProtobufMessageFieldBuilder::getFieldNumber))
+                .forEach(messageField -> msgContent.append(messageField.toString(levelSpace)));
 
         String protoEnd = space + "}\n";
 
