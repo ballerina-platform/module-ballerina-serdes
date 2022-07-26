@@ -6,9 +6,9 @@ distribution = "2201.2.0"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/serdes-native-0.1.0-SNAPSHOT.jar"
-groupId = "io.ballerina.stdlib.serdes"
-artifactId = "serdes"
-version = "0.1.0-SNAPSHOT"
+groupId = "io.ballerina.stdlib"
+artifactId = "serdes-native"
+version = "0.1.0"
 
 [[platform.java11.dependency]]
 path = "./lib/protobuf-java-3.21.2.jar"
