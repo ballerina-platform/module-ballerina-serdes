@@ -42,7 +42,7 @@ public class TupleMessageSerializer extends MessageSerializer {
 
     @Override
     public List<MessageFieldData> getListOfMessageFieldData() {
-        BArray tuple = (BArray) getAnydata();
+        BArray tuple = (BArray) getBallerinaStructureTypeValue();
         List<MessageFieldData> messageFieldDataOfTupleElements = new ArrayList<>();
         List<Type> elementTypes = ((TupleType) tuple.getType()).getTupleTypes();
         for (int i = 0; i < tuple.size(); i++) {

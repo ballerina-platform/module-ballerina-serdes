@@ -43,7 +43,7 @@ public class UnionMessageSerializer extends MessageSerializer {
 
     @Override
     public List<MessageFieldData> getListOfMessageFieldData() {
-        Object unionValue = getAnydata();
+        Object unionValue = getBallerinaStructureTypeValue();
         Type type = TypeUtils.getType(unionValue);
         Map.Entry<String, Type> filedNameAndReferredType = UnionMessageType.mapMemberToFieldName(type);
         String fieldName = filedNameAndReferredType.getKey();

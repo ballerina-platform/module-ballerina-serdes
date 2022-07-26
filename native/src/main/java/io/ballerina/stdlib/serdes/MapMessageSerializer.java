@@ -193,7 +193,8 @@ public class MapMessageSerializer extends MessageSerializer {
 
     @Override
     public List<MessageFieldData> getListOfMessageFieldData() {
-        @SuppressWarnings("unchecked") BMap<BString, Object> ballerinaMap = (BMap<BString, Object>) getAnydata();
+        @SuppressWarnings("unchecked")
+        BMap<BString, Object> ballerinaMap = (BMap<BString, Object>) getBallerinaStructureTypeValue();
         MapType mapType = (MapType) ballerinaMap.getType();
         Type constrainedType = mapType.getConstrainedType();
         Type referredConstrainedType = TypeUtils.getReferredType(constrainedType);

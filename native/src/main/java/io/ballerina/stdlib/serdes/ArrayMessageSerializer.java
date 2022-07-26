@@ -49,7 +49,7 @@ public class ArrayMessageSerializer extends MessageSerializer {
     @Override
     public void setByteFieldValue(Integer ballerinaByte) {
         // Discard ballerinaByte parameter and set the entire byte array without repeating the field
-        setCurrentFieldValueInDynamicMessageBuilder(((BArray) getAnydata()).getBytes());
+        setCurrentFieldValueInDynamicMessageBuilder(((BArray) getBallerinaStructureTypeValue()).getBytes());
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ArrayMessageSerializer extends MessageSerializer {
 
     @Override
     public List<MessageFieldData> getListOfMessageFieldData() {
-        BArray array = (BArray) getAnydata();
+        BArray array = (BArray) getBallerinaStructureTypeValue();
         Type referredType = TypeUtils.getReferredType(array.getElementType());
         int arraySize = array.size();
         List<MessageFieldData> messageFieldDataOfArrayElements = new ArrayList<>();

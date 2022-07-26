@@ -44,14 +44,14 @@ import static io.ballerina.stdlib.serdes.Utils.createSerdesError;
  */
 public abstract class MessageSerializer {
     private final Builder dynamicMessageBuilder;
-    private final Object anydata;
+    private final Object ballerinaStructureTypeValue;
     private final BallerinaStructuredTypeMessageSerializer ballerinaStructuredTypeMessageSerializer;
     private String currentFieldName;
 
-    public MessageSerializer(Builder dynamicMessageBuilder, Object anydata,
+    public MessageSerializer(Builder dynamicMessageBuilder, Object ballerinaStructureTypeValue,
                              BallerinaStructuredTypeMessageSerializer ballerinaStructuredTypeMessageSerializer) {
         this.dynamicMessageBuilder = dynamicMessageBuilder;
-        this.anydata = anydata;
+        this.ballerinaStructureTypeValue = ballerinaStructureTypeValue;
         this.ballerinaStructuredTypeMessageSerializer = ballerinaStructuredTypeMessageSerializer;
     }
 
@@ -63,8 +63,8 @@ public abstract class MessageSerializer {
         return ballerinaStructuredTypeMessageSerializer;
     }
 
-    public Object getAnydata() {
-        return anydata;
+    public Object getBallerinaStructureTypeValue() {
+        return ballerinaStructureTypeValue;
     }
 
     public String getCurrentFieldName() {

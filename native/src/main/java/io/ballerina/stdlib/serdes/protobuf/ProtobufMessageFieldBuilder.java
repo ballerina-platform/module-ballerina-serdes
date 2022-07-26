@@ -80,5 +80,4 @@ public class ProtobufMessageFieldBuilder {
         return indentation + SPACE + fieldLabel + getFieldType() + SPACE + getFieldName() + SPACE + " = "
                 + getFieldNumber() + ";\n";
     }
-
 }

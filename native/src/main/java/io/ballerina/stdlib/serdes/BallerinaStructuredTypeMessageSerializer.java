@@ -111,8 +111,8 @@ public class BallerinaStructuredTypeMessageSerializer {
                     messageSerializer.setArrayFieldValue((BArray) ballerinaValue);
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    @SuppressWarnings("unchecked") BMap<BString, Object> recordValue
-                            = (BMap<BString, Object>) ballerinaValue;
+                    @SuppressWarnings("unchecked")
+                    BMap<BString, Object> recordValue = (BMap<BString, Object>) ballerinaValue;
                     messageSerializer.setRecordFieldValue(recordValue);
                     break;
                 case TypeTags.TUPLE_TAG:
@@ -122,8 +122,8 @@ public class BallerinaStructuredTypeMessageSerializer {
                     messageSerializer.setTableFieldValue((BTable<?, ?>) ballerinaValue);
                     break;
                 case TypeTags.MAP_TAG:
-                    @SuppressWarnings("unchecked") BMap<BString, Object> mapValue
-                            = (BMap<BString, Object>) ballerinaValue;
+                    @SuppressWarnings("unchecked")
+                    BMap<BString, Object> mapValue = (BMap<BString, Object>) ballerinaValue;
                     messageSerializer.setMapFieldValue(mapValue);
                     break;
                 default:
