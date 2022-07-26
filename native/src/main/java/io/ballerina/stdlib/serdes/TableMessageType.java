@@ -126,7 +126,7 @@ public class TableMessageType extends MessageType {
     }
 
     @Override
-    public List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList() {
+    public List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList() {
         TableType tableType = (TableType) getBallerinaType();
         return List.of(Map.entry(TABLE_ENTRY, TypeUtils.getReferredType(tableType.getConstrainedType())));
     }

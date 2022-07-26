@@ -256,7 +256,7 @@ public class ArrayMessageType extends MessageType {
     }
 
     @Override
-    public List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList() {
+    public List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList() {
         ArrayType arrayType = (ArrayType) getBallerinaType();
         Type elementType = arrayType.getElementType();
         Type referredType = TypeUtils.getReferredType(elementType);

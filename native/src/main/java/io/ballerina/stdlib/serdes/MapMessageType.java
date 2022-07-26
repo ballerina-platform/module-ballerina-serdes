@@ -206,7 +206,7 @@ public class MapMessageType extends MessageType {
     }
 
     @Override
-    public List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList() {
+    public List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList() {
         MapType mapType = (MapType) getBallerinaType();
         return List.of(Map.entry(VALUE_NAME, TypeUtils.getReferredType(mapType.getConstrainedType())));
     }

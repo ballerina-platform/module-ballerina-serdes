@@ -105,7 +105,7 @@ public class TupleMessageType extends MessageType {
     }
 
     @Override
-    public List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList() {
+    public List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList() {
         TupleType tupleType = (TupleType) getBallerinaType();
         AtomicInteger elementIndex = new AtomicInteger(0);
         return tupleType.getTupleTypes().stream()

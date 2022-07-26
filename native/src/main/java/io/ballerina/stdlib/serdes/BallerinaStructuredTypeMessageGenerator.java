@@ -84,7 +84,7 @@ public class BallerinaStructuredTypeMessageGenerator {
     }
 
     public ProtobufMessageBuilder generateMessageDefinition() {
-        List<Map.Entry<String, Type>> fieldNamesAndTypes = messageType.getFiledNameAndBallerinaTypeEntryList();
+        List<Map.Entry<String, Type>> fieldNamesAndTypes = messageType.getFieldNameAndBallerinaTypeEntryList();
 
         for (Map.Entry<String, Type> entry : fieldNamesAndTypes) {
             String fieldEntryName = entry.getKey();

@@ -105,7 +105,7 @@ public class RecordMessageType extends MessageType {
     }
 
     @Override
-    public List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList() {
+    public List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList() {
         RecordType recordType = (RecordType) getBallerinaType();
         Map<String, Field> recordFields = recordType.getFields();
         return recordFields.values().stream().sorted(Comparator.comparing(Field::getFieldName))

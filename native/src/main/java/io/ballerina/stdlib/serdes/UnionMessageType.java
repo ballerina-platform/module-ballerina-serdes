@@ -186,7 +186,7 @@ public class UnionMessageType extends MessageType {
     }
 
     @Override
-    public List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList() {
+    public List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList() {
         UnionType unionType = (UnionType) getBallerinaType();
         return unionType.getMemberTypes().stream().map(UnionMessageType::mapMemberToFieldName)
                 .sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());

@@ -176,7 +176,7 @@ public abstract class MessageType {
 
     public abstract void setTupleField(TupleType tupleType);
 
-    public abstract List<Map.Entry<String, Type>> getFiledNameAndBallerinaTypeEntryList();
+    public abstract List<Map.Entry<String, Type>> getFieldNameAndBallerinaTypeEntryList();
 
     public void addChildMessageDefinitionInMessageBuilder(String childMessageName, RecordType recordType) {
         boolean hasMessageDefinition = messageBuilder.hasMessageDefinitionInMessageTree(childMessageName);
