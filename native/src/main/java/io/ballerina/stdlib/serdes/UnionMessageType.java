@@ -29,7 +29,6 @@ import io.ballerina.runtime.api.types.TupleType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
-import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.serdes.protobuf.DataTypeMapper;
 import io.ballerina.stdlib.serdes.protobuf.ProtobufMessageBuilder;
 
@@ -45,7 +44,6 @@ import static io.ballerina.stdlib.serdes.Constants.NIL;
 import static io.ballerina.stdlib.serdes.Constants.NULL_FIELD_NAME;
 import static io.ballerina.stdlib.serdes.Constants.OPTIONAL_LABEL;
 import static io.ballerina.stdlib.serdes.Constants.SEPARATOR;
-import static io.ballerina.stdlib.serdes.Constants.STRING;
 import static io.ballerina.stdlib.serdes.Constants.TABLE_MEMBER_NOT_YET_SUPPORTED;
 import static io.ballerina.stdlib.serdes.Constants.TUPLE_BUILDER;
 import static io.ballerina.stdlib.serdes.Constants.TYPE_SEPARATOR;
@@ -77,15 +75,23 @@ public class UnionMessageType extends MessageType {
         }
 
         // Handle enum members
-        if (referredType.getTag() == TypeTags.FINITE_TYPE_TAG
-                && TypeUtils.getType(referredType.getEmptyValue()).getTag() == TypeTags.STRING_TAG) {
-            return Map.entry(((BString) referredType.getEmptyValue()).getValue(), referredType);
+        if (referredType.getTag() == TypeTags.FINITE_TYPE_TAG) {
+            Type finiteValueType = TypeUtils.getType(referredType.getEmptyValue());
+            typeName = TypeUtils.getReferredType(finiteValueType).getName();
         }
 
-        if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)
-                || referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+        if (DataTypeMapper.isValidBallerinaPrimitiveType(typeName)) {
             String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
             return Map.entry(key, referredType);
+        }
+
+        if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+            if (!Utils.isAnonymousBallerinaRecord(referredType)) {
+                String key = typeName + TYPE_SEPARATOR + UNION_FIELD_NAME;
+                return Map.entry(key, referredType);
+            } else {
+                throw createSerdesError(Utils.typeNotSupportedErrorMessage((RecordType) referredType), SERDES_ERROR);
+            }
         }
 
         if (typeName.equals(NIL)) {
@@ -116,7 +122,13 @@ public class UnionMessageType extends MessageType {
 
     @Override
     public void setEnumField(FiniteType finiteType) {
-        addMessageFieldInMessageBuilder(OPTIONAL_LABEL, STRING);
+        Type referredMemberType = TypeUtils.getType(finiteType.getEmptyValue());
+        String protoType = DataTypeMapper.mapBallerinaTypeToProtoType(referredMemberType.getTag());
+        if (referredMemberType.getTag() == TypeTags.DECIMAL_TAG) {
+            ProtobufMessageBuilder decimalMessageDefinition = generateDecimalMessageDefinition();
+            getMessageBuilder().addNestedMessage(decimalMessageDefinition);
+        }
+        addMessageFieldInMessageBuilder(OPTIONAL_LABEL, protoType);
     }
 
     @Override
