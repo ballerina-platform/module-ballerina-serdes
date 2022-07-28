@@ -47,7 +47,7 @@ A value having the same type as the provided typedesc can be serialized by invok
 ```ballerina
 Student deserializedValue = check schema.deserialize(serializedValue);
 ```
-The serialized value `(byte[])` can be again deserialized by invoking the `deserialize` method on the instantiated `serdes:Proto3Schema` object. The underlying implementation uses the previously generated proto3 schema and deserializes the provided `byte[]`. As the result of deserialization the method returns the ballerina value with the type represented by the typedesc value provided during the `serdes:Proto3Schema` object instantiation.
+The serialized value (`byte[]`) can be again deserialized by invoking the `deserialize` method on the instantiated `serdes:Proto3Schema` object. The underlying implementation uses the previously generated proto3 schema and deserializes the provided `byte[]`. As the result of deserialization the method returns the ballerina value with the type represented by the typedesc value provided during the `serdes:Proto3Schema` object instantiation.
 
 ## Issues and Projects
 
