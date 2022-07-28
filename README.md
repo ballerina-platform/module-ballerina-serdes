@@ -32,9 +32,9 @@ While instantiation of this object, an underlying proto3 schema generated for th
 
 ```ballerina
 Student studentValue = {
-        id: 7894,
-        name: "Liam",
-        fees: 24999.99
+    id: 7894,
+    name: "Liam",
+    fees: 24999.99
 };
 
 // Serialize the record value to bytes.
