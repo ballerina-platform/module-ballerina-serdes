@@ -9,6 +9,46 @@ Ballerina SerDes Library
 
 This library provides APIs for serializing and deserializing subtypes of Ballerina anydata type.
 
+### Proto3Schema
+
+An instance of the `serdes:Proto3Schema` class is used to serialize and deserialize ballerina values using protocol buffers.
+
+#### Create a `serdes:Proto3Schema` object
+
+```ballerina
+// Define a type which is a subtype of anydata.
+type Student record {
+    int id;
+    string name;
+    decimal fees;
+};
+
+// Create a serialization object by passing the typedesc.
+serdes:Proto3Schema schema = check new (Student);
+```
+While instantiation of this object, an underlying proto3 schema generated for the provided typedesc.
+
+#### Serialization
+
+```ballerina
+Student studentValue = {
+        id: 7894,
+        name: "Liam",
+        fees: 24999.99
+};
+
+// Serialize the record value to bytes.
+byte[] serializedValue = check schema.serialize(studentValue);
+```
+A value having the same type as the provided typedesc can be serialized by invoking the `serialize` method on the previously instantiated `serdes:Proto3Schema` object. The underlying implementation uses the previously generated proto3 schema to serialize the provided value.
+
+#### Serialization
+
+```ballerina
+Student deserializedValue = check schema.deserialize(serializedValue);
+```
+The serialized value `(byte[])` can be again deserialized by invoking the `deserialize` method on the instantiated `serdes:Proto3Schema` object. The underlying implementation uses the previously generated proto3 schema and deserializes the provided `byte[]`. As the result of deserialization the method returns the ballerina value with the type represented by the typedesc value provided during the `serdes:Proto3Schema` object instantiation.
+
 ## Issues and Projects
 
 The **Issues** and **Projects** tabs are disabled for this repository as this is part of the Ballerina Standard Library. To report bugs, request new features, start new discussions, view project boards, etc., go to the Ballerina Standard Library [parent repository](https://github.com/ballerina-platform/ballerina-standard-library).
