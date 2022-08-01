@@ -1,7 +1,7 @@
 # Specification: Ballerina SerDes Library
 
 _Owners_: @MohamedSabthar @shafreenAnfar @ThisaruGuruge  
-_Reviewers_:   
+_Reviewers_: @shafreenAnfar @ThisaruGuruge  
 _Created_: 2022/08/01  
 _Updated_: 2022/08/01  
 _Edition_: Swan Lake  
@@ -18,26 +18,47 @@ The conforming implementation of the specification is released and included in t
 ## Contents
 
 1. [Overview](#1-overview)
-2. [Proto3Schema](#2-proto3schema)
-	* 2.1 [`init` function](#21-init-function)
-	* 2.2 [`serialize` function](#22-serialize-function)
-	* 2.3 [`deserialize` function](#23-deserialize-function)
-3. [Ballerina anydata to proto3 mapping](#3-ballerina-anydata-to-proto3-mapping)
-	* 3.1 [Ballerina primitives](#31-ballerina-primitives)
-	* 3.2 [Array](#32-array)
-	* 3.3 [Union](#33-union)
-	* 3.4 [Record](#34-record)
-	* 3.5 [Map](#35-map)
-	* 3.6 [Table](#36-table)
-	* 3.7 [Tuple](#37-tuple)
-	* 3.8 [Enum](#38-enum)
-4. [Sample](#4-sample)
+2. [Schema](#2-schema)
+	* 2.1 [`serialize` function](#21-serialize-function)
+	* 2.2 [`deserialize` function](#22-deserialize-function)
+3. [Proto3Schema](#3-proto3schema)
+	* 3.1 [`init` function](#31-init-function)
+	* 3.2 [`serialize` function](#32-serialize-function)
+	* 3.3 [`deserialize` function](#33-deserialize-function)
+4. [Ballerina anydata to proto3 mapping](#4-ballerina-anydata-to-proto3-mapping)
+	* 4.1 [Ballerina primitives](#41-ballerina-primitives)
+	* 4.2 [Array](#42-array)
+	* 4.3 [Union](#43-union)
+	* 4.4 [Record](#44-record)
+	* 4.5 [Map](#45-map)
+	* 4.6 [Table](#46-table)
+	* 4.7 [Tuple](#47-tuple)
+	* 4.8 [Enum](#48-enum)
 
 ## 1. Overview
-This specification elaborates on functionalities provided by SerDes library and how SerDes library maps the Ballerina anydata to a protocol buffer type.
+This specification elaborates on functionalities provided by the SerDes library and how the SerDes library maps the Ballerina anydata to a protocol buffer type.
 
-## 2. Proto3Schema
-`Proto3Schema` class provides APIs to perform serialization and deserialization of Ballerina anydata using protocol buffers (proto3). Following is the class definition of `Proto3Schema`
+## 2. Schema
+`Schema` object defines the API to perform serialization and deserialization of Ballerina anydata. One can include this `Schema` object in a class and implement their serialization and deserialization logic. The `Schema` object definition is as follows. 
+
+```ballerina
+public type Schema object {
+
+  public isolated function serialize(anydata data) returns byte[]|Error;
+
+  public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error;
+}
+```
+
+### 2.1 `serialize` function
+Serializes the value passed as the argument and returns `byte[]` on successful serialization or an `Error` on failure.
+
+### 2.2 `deserialize` function
+Deserializes the provided `byte[]` argument and returns the ballerina value or an `Error` on failure.
+
+## 3. Proto3Schema
+`Proto3Schema` class includes `Schema` object and provides the implementation to
+ perform serialization and deserialization of Ballerina anydata using protocol buffers (proto3). The class definition of `Proto3Schema` is as follows.
 
 ```ballerina
 public class Proto3Schema {
@@ -51,33 +72,71 @@ public class Proto3Schema {
 }
 ```
 
+### 3.1 `init` function
+Generates a proto3 message definition for the given `typedesc<anydata>` when instantiating a `Proto3Schema` object. 
+
+### 3.2 `serialize` function
+Serializes the value passed as the argument and returns `byte[]` on successful serialization or an `Error` on failure. The underlying implementation uses the previously generated proto3 message definition to serialize the provided value. Passing a value that doesn't match the type provided during the instantiation of the `Proto3Schema` object may results in a serialization failure. The following code shows an example of performing serialization.
+
+
 ```ballerina
-// serdes Error
-public type Error distinct error; 
+import ballerina/serdes;
 
-// Abstract object
-public type Schema object {
+// Define a type which is a subtype of anydata.
+type Student record {
+    int id;
+    string name;
+    decimal fees;
+};
 
-  public isolated function serialize(anydata data) returns byte[]|Error;
+public function main() returns error? {
 
-  public isolated function deserialize(byte[] encodedMessage, typedesc<anydata> T = <>) returns T|Error;
+    // Assign the value to the variable
+    Student student = {
+        id: 7894,
+        name: "Liam",
+        fees: 24999.99
+    };
+
+    // Create a serialization object by passing the typedesc.
+    // This creates an underlying protocol buffer schema for the typedesc.
+    serdes:Proto3Schema serdes = check new (Student);
+
+    // Serialize the record value to bytes.
+    byte[] bytes = check serdes.serialize(student);
 }
 ```
 
-### 2.1 `init` function
-Generates a proto3 message definition for the given `typedesc<anydata>` when instantiating a `Proto3Schema` object. 
+### 3.3 `deserialize` function
+Deserializes the provided `byte[]` argument and returns the ballerina value with the type represented by the typedesc value provided during the `Proto3Schema` object instantiation. The underlying implementation uses the generated proto3 message definition to serialize the provided value. Passing a `byte[]` that is not a serialized value of the specified type may result in a deserialization failure or a garbage value. The following code shows an example of performing deserialization.
 
-### 2.2 `serialize` function
-Serializes the value passsed as the argument and returns `byte[]` on successful serialization or an `Error` on failure. The underlying implementation uses the previously generated proto3 message definition to serialize the provided value. Passing a value that doesn't match the type provoided during the instantiation of `Proto3Schema` object may results  in a serialization failure.
+```ballerina
+import ballerina/io;
+import ballerina/serdes;
 
-### 2.3 `deserialize` function
-Deserializes the provided `byte[]` argument and returns the ballerina value with the type represented by the typedesc value provided during the `Proto3Schema` object instantiation. The underlying implementation uses the generated proto3 message definition to serialize the provided value. Passing a `byte[]` that is not a serialized value of of the specified type may result in a deserilization failure or a garbage value.
+// Define a type which is a subtype of anydata.
+type Student record {
+    int id;
+    string name;
+    decimal fees;
+};
 
-## 3. Ballerina anydata to proto3 mapping
-As specified `Proto3Schema` dynamically generates proto3 message definition for given subtypes of Ballerina anydata. Following sections defines the mapping for each subtypes.
+public function main() returns error? {
 
+    byte[] bytes = readSerializedDataToByteArray();
 
-### 3.1 Ballerina primitives
+    // Deserialize the record value from bytes. 
+    Student student = check serdes.deserialize(bytes);
+
+    // Print deserialized data.
+    io:println(student);
+}
+```
+
+## 4. Ballerina anydata to proto3 mapping
+As specified before, the `Proto3Schema` dynamically generates proto3 message definition for given subtypes of Ballerina anydata. The following sections define the mapping for each subtype.
+
+### 4.1 Ballerina primitives
 
 <table >
 <tr>
@@ -191,7 +250,7 @@ message DecimalValue {
 </tr>
 <table>
 
-### 3.2 Array
+### 4.2 Array
 
 1. Simple arrays
 <table >
@@ -314,7 +373,7 @@ message ArrayBuilder {
 </tr>
 <table>
 
-### 3.3 Union
+### 4.3 Union
 
 1. Union with primitive types
 
@@ -652,7 +711,7 @@ message <b>Node1</b> {
 </tr>
 <table>
 
-### 3.5 Map
+### 4.5 Map
 
 1. Map with primitive types
 <table >
@@ -892,7 +951,7 @@ message <b>MapBuilder</b> {
 </tr>
 <table>
 
-### 3.6 Table
+### 4.6 Table
 
 1. Table with Map constraint
 <table >
@@ -964,7 +1023,7 @@ message <b>TableBuilder</b> {
 </tr>
 <table>
 
-### 3.7 Tuple
+### 4.7 Tuple
 1. Tuple with primitive type elements
 <table >
 <tr>
@@ -1206,7 +1265,7 @@ message TupleBuilder {
 </tr>
 <table>
 
-### 3.8 Enum
+### 4.8 Enum
 Ballerina enum is a syntactic sugar of union of constant strings thus enum is handled as union in protobuf level
      <table >
 <tr>
@@ -1253,42 +1312,3 @@ message <b>UnionBuilder</b> {
 </td>
 </tr>
 <table>
-
-
-
-## 4. Sample
-
-```ballerina
-import ballerina/io;
-import ballerina/serdes;
-
-// Define a type which is a subtype of anydata.
-type Student record {
-    int id;
-    string name;
-    decimal fees;
-};
-
-public function main() returns error? {
-
-    // Assign the value to the variable
-    Student student = {
-        id: 7894,
-        name: "Liam",
-        fees: 24999.99
-    };
-
-    // Create a serialization object by passing the typedesc.
-    // This creates an underlying protocol buffer schema for the typedesc.
-    serdes:Proto3Schema serdes = check new (Student);
-
-    // Serialize the record value to bytes.
-    byte[] bytes = check serdes.serialize(student);
-
-    // Deserialize the record value from bytes. 
-    Student 'student = check serdes.deserialize(bytes);
-
-    // Print deserialized data.
-    io:println('student);
-}
-```
