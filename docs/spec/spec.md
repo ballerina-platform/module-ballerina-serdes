@@ -39,7 +39,7 @@ The conforming implementation of the specification is released and included in t
 This specification elaborates on functionalities provided by the SerDes library and how the SerDes library maps the Ballerina anydata to a protocol buffer type.
 
 ## 2. Schema
-`Schema` object defines the API to perform serialization and deserialization of Ballerina anydata. One can include this `Schema` object in a class and implement their serialization and deserialization logic. The `Schema` object definition is as follows. 
+`Schema` object defines the API to perform serialization and deserialization of Ballerina anydata. You can include this `Schema` object in a class and implement your serialization and deserialization logic. The `Schema` object definition is as follows. 
 
 ```ballerina
 public type Schema object {
