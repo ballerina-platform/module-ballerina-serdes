@@ -1,0 +1,17 @@
+[container.image]
+repository= "ballerina"
+name="proto3_test"
+
+[cloud.deployment]
+min_memory="256Mi"
+max_memory="512Mi"
+min_cpu="200m"
+max_cpu="1000m"
+
+[[container.copy.files]]
+sourceFile="./resources/users.json"
+target="/home/ballerina/resources/users.json"
+
+[cloud.deployment.autoscaling]
+min_replicas=1
+max_replicas=1

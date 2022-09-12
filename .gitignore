@@ -38,3 +38,9 @@ build
 
 # Generated proto files
 ballerina/*.proto
+
+# Auto generated Dependencies.toml files
+load-tests/**/Dependencies.toml
+
+# Do not ignore
+!load-tests/proto3_test/scripts/load_test.jar
