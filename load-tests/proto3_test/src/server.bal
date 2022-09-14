@@ -18,9 +18,10 @@ import ballerina/serdes;
 import ballerina/io;
 import ballerina/http;
 import ballerina/time;
+import ballerina/log;
 
 configurable int PORT = 9100;
-const time:Seconds EXECUTION_TIME = 10;
+const time:Seconds EXECUTION_TIME = 3600;
 
 time:Utc startedTime = time:utcNow();
 time:Utc endedTime = time:utcNow();
@@ -62,7 +63,7 @@ service /serdes on new http:Listener(PORT) {
         return handleSerialization(serdes, nextUser);
     }
 
-    resource function get result() returns boolean|map<string> {
+    resource function get result() returns map<string>? {
         if completed {
             string errCount = "";
             string sentCount = "";
@@ -81,21 +82,22 @@ service /serdes on new http:Listener(PORT) {
 
             return {errorCount: errCount, time, sentCount, receivedCount};
         }
-        return false;
+        return ();
     }
 }
 
 function loadUserTable() returns error? {
-    io:println("Loading user table ...");
+    log:printInfo("Loading user table ...");
     json content = check io:fileReadJson("resources/users.json");
     User[] userArray = check content.cloneWithType();
     foreach User user in userArray {
         users.add(user);
     }
-    io:println("User table loaded.");
+    log:printInfo("User table loaded.");
 }
 
 function beginCommunication(http:Client clientEP) returns error? {
+    log:printInfo("Communication started");
     completed = false;
     final int totalUsers = users.length();
     User user = users.get(0);
@@ -111,9 +113,13 @@ function beginCommunication(http:Client clientEP) returns error? {
 
     completed = true;
     endedTime = time:utcNow();
-    io:println("Started time: ", startedTime);
-    io:println("Ended time: ", endedTime);
-    io:println("Total time elasped: ", time:utcDiffSeconds(endedTime, startedTime), " seconds");
+
+    log:printInfo("Communication ended",
+    keyValue = {
+        "Started time": startedTime,
+        "Ended time": endedTime,
+        "Total time elasped": time:utcDiffSeconds(endedTime, startedTime)
+    });
 }
 
 function resetCountersAndTime() {
@@ -135,7 +141,7 @@ function handleSerialization(serdes:Schema serdes, User user) returns byte[] {
     byte[]|serdes:Error encoded = serdes.serialize(user);
     byte[] response = [];
     if encoded is serdes:Error {
-        io:print("Serialization faild: ", user);
+        log:printError("Serialization faild: ", encoded);
         lock {
             errorCount += 1;
         }
@@ -152,7 +158,7 @@ function handleDeserialization(serdes:Schema serdes, byte[] payload) returns Use
     User|serdes:Error user = serdes.deserialize(payload);
     User nextUser = users.get(0);
     if user is serdes:Error {
-        io:print("Deserialization faild: ", user);
+        log:printError("Deserialization faild: ", user);
         lock {
             errorCount += 1;
         }

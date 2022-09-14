@@ -17,7 +17,6 @@
 import ballerina/io;
 import ballerina/http;
 import ballerina/time;
-import ballerina/log;
 import ballerina/lang.runtime;
 
 type User record {
@@ -31,7 +30,7 @@ public function main(string label, string outputCsvPath) returns error? {
 
     boolean result = check loadTestClient->get("/start");
     if result {
-        log:printInfo("Client started communication");
+        io:println("Client started communication");
     } else {
         io:println("Could not start communication: client creation failed in serdes service");
     }
@@ -40,16 +39,14 @@ public function main(string label, string outputCsvPath) returns error? {
 
     boolean finished = false;
     while !finished {
-        boolean|map<string>|error res = loadTestClient->get("/result");
+        map<string>?|error res = loadTestClient->get("/result");
         if res is error {
-            log:printError("Error occured", res);
-        } else if res is boolean {
-            log:printInfo(res.toString());
-        } else {
+            io:println("Error occured", res);
+        } else if res is map<string> {
             finished = true;
             testResults = res;
         }
-        runtime:sleep(20);
+        runtime:sleep(60);
     }
     int errorCount = check int:fromString(testResults.get("errorCount"));
     decimal time = check decimal:fromString(testResults.get("time"));
