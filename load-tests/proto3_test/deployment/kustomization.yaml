@@ -1,0 +1,11 @@
+resources:
+  - proto3_test.yaml
+  - ingress.yaml
+
+patches:
+  - path: deployment-patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: proto3-test-deployment

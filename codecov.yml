@@ -6,3 +6,5 @@ coverage:
         project:
             default:
                 target: 80
+ignore:
+  - "load-tests"
