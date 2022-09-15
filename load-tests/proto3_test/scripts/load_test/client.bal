@@ -28,7 +28,7 @@ type User record {
 public function main(string label, string outputCsvPath) returns error? {
     http:Client loadTestClient = check new ("http://bal.perf.test");
 
-    boolean result = check loadTestClient->get("/start");
+    boolean result = check loadTestClient->get("/serdes/start");
     if result {
         io:println("Client started communication");
     } else {
