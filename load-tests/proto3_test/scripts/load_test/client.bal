@@ -26,7 +26,7 @@ type User record {
 };
 
 public function main(string label, string outputCsvPath) returns error? {
-    http:Client loadTestClient = check new ("http://bal.perf.test");
+    http:Client loadTestClient = check new ("http://bal.perf.test", retryConfig = {count: 3, interval: 3});
 
     boolean result = check loadTestClient->get("/serdes/start");
     if result {
@@ -39,12 +39,14 @@ public function main(string label, string outputCsvPath) returns error? {
 
     boolean finished = false;
     while !finished {
-        map<string>?|error res = loadTestClient->get("/result");
+        map<string>?|error res = loadTestClient->get("/serdes/result");
         if res is error {
             io:println("Error occured", res);
         } else if res is map<string> {
             finished = true;
             testResults = res;
+        } else {
+            io:println("waiting for result...");
         }
         runtime:sleep(60);
     }
