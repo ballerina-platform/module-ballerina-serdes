@@ -1,0 +1,46 @@
+name: Trigger load tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: >
+          List of test names
+          This needs to be filled only if you want to run a specific set of tests. Example: [“foo”, “bar”]
+        required: false
+      clusterName:
+        description: 'Cluster name'
+        default: 'serdes-perf-cluster-test'
+        required: false
+  schedule:
+    - cron: '0 0 * * *'
+jobs:
+  invokeLoadTests:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'ballerina-platform'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Process cluster name
+        id: processClusterName
+        run: |
+          clusterName="${{github.event.inputs.clusterName}}"
+          if [ "$clusterName" = "" ]; then
+            clusterName="serdes-perf-cluster-test"
+          fi
+          printf "::set-output name=clusterName::%s" $clusterName
+      - name: Get latest ballerina runtime artifact
+        id: setRuntimeUrl
+        shell: bash
+        run: |
+          printf "::set-output name=runtimeUrl::%s" $(curl -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ballerina-platform/module-ballerina-serdes/actions/artifacts | \
+            jq '[.artifacts[] | select(.name=="ballerina-runtime" and .expired==false)]|max|.archive_download_url')
+      - name: Invoke standard library load test workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Stdlib Workflow
+          repo: ballerina-platform/ballerina-performance-cloud
+          ref: refs/heads/main
+          token: ${{ secrets.BALLERINA_BOT_TOKEN }}
+          inputs: '{ "repo-name": "module-ballerina-serdes", "tests": "${{ steps.formatTestNames.outputs.testNames }}", "zipURL": ${{ steps.setRuntimeUrl.outputs.runtimeUrl}}, "clusterName": "${{ steps.processClusterName.outputs.clusterName }}", "dispatchType": "serdes-load-test" }'
