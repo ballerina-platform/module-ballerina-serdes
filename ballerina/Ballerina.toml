@@ -5,7 +5,7 @@ version = "0.1.1"
 distribution = "2201.2.0"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/serdes-native-0.1.1-SNAPSHOT.jar"
+path = "../native/build/libs/serdes-native-0.1.1.jar"
 groupId = "io.ballerina.stdlib"
 artifactId = "serdes-native"
 version = "0.1.1"
