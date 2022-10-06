@@ -1,23 +1,23 @@
 [package]
 org = "ballerina"
 name = "serdes"
-version = "0.1.0"
+version = "0.1.1"
 distribution = "2201.2.0"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/serdes-native-0.1.0.jar"
+path = "../native/build/libs/serdes-native-0.1.1-SNAPSHOT.jar"
 groupId = "io.ballerina.stdlib"
 artifactId = "serdes-native"
-version = "0.1.0"
+version = "0.1.1"
 
 [[platform.java11.dependency]]
-path = "./lib/protobuf-java-3.21.2.jar"
+path = "./lib/protobuf-java-3.21.7.jar"
 groupId = "com.google.protobuf"
 artifactId = "protobuf-java"
-version = "3.21.2"
+version = "3.21.7"
 
 [[platform.java11.dependency]]
-path = "./lib/protobuf-java-util-3.21.2.jar"
+path = "./lib/protobuf-java-util-3.21.7.jar"
 groupId = "com.google.protobuf"
 artifactId = "protobuf-java-util"
-version = "3.21.2"
+version = "3.21.7"
