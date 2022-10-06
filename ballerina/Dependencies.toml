@@ -39,7 +39,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "serdes"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
