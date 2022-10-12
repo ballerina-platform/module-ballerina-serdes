@@ -6,12 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+- [[#3463] API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
+
+## [0.1.1] - 2022-10-06 
+
+### Fixed
+
+- [[#3493] Update Protobuf Version to Fix Protobuf Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/3493)
+
+## [0.1.0] - 2022-09-08 
+
 ### Added
 
-- [[#3012] Add support to decimal, records and arrays types](https://github.com/ballerina-platform/ballerina-standard-library/issues/3012)
-- [[#3013] Add support for record with cyclic references](https://github.com/ballerina-platform/ballerina-standard-library/issues/3013)
-- [[#3032] Add support to ballerina map type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3032)
-- [[#3043] Add support to ballerina table type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3043)
-- [[#3046] Add support to ballerina tuple type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3046)
-- [[#3052] Add support enum type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3052)
-- [[#3158] Support enum with values having spaces and special characters](https://github.com/ballerina-platform/ballerina-standard-library/issues/3158)
+- [[#3012] Add Support to Decimal, Records and Arrays Types](https://github.com/ballerina-platform/ballerina-standard-library/issues/3012)
+- [[#3013] Add Support for Record with Cyclic References](https://github.com/ballerina-platform/ballerina-standard-library/issues/3013)
+- [[#3032] Add Support to Ballerina Map Type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3032)
+- [[#3043] Add Support to Ballerina Table Type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3043)
+- [[#3046] Add Support to Ballerina Tuple Type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3046)
+- [[#3052] Add Support Enum Type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3052)
+- [[#3158] Support Enum with Values Having Spaces and Special Characters](https://github.com/ballerina-platform/ballerina-standard-library/issues/3158)
