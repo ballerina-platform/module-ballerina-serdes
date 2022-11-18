@@ -20,6 +20,7 @@ package io.ballerina.stdlib.serdes;
 
 import com.google.protobuf.DynamicMessage.Builder;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BDecimal;
@@ -82,55 +83,62 @@ public class BallerinaStructuredTypeMessageSerializer {
 
             messageSerializer.setCurrentFieldName(fieldName);
 
-            switch (ballerinaType.getTag()) {
-                case TypeTags.NULL_TAG:
-                    messageSerializer.setNullFieldValue(ballerinaValue);
-                    break;
-                case TypeTags.INT_TAG:
-                    messageSerializer.setIntFieldValue(ballerinaValue);
-                    break;
-                case TypeTags.BYTE_TAG:
-                    messageSerializer.setByteFieldValue((Integer) ballerinaValue);
-                    break;
-                case TypeTags.FLOAT_TAG:
-                    messageSerializer.setFloatFieldValue(ballerinaValue);
-                    break;
-                case TypeTags.STRING_TAG:
-                    messageSerializer.setStringFieldValue((BString) ballerinaValue);
-                    break;
-                case TypeTags.BOOLEAN_TAG:
-                    messageSerializer.setBooleanFieldValue((Boolean) ballerinaValue);
-                    break;
-                case TypeTags.DECIMAL_TAG:
-                    messageSerializer.setDecimalFieldValue((BDecimal) ballerinaValue);
-                    break;
-                case TypeTags.UNION_TAG:
-                    messageSerializer.setUnionFieldValue(ballerinaValue);
-                    break;
-                case TypeTags.ARRAY_TAG:
-                    messageSerializer.setArrayFieldValue((BArray) ballerinaValue);
-                    break;
-                case TypeTags.RECORD_TYPE_TAG:
-                    @SuppressWarnings("unchecked")
-                    BMap<BString, Object> recordValue = (BMap<BString, Object>) ballerinaValue;
-                    messageSerializer.setRecordFieldValue(recordValue);
-                    break;
-                case TypeTags.TUPLE_TAG:
-                    messageSerializer.setTupleFieldValue((BArray) ballerinaValue);
-                    break;
-                case TypeTags.TABLE_TAG:
-                    messageSerializer.setTableFieldValue((BTable<?, ?>) ballerinaValue);
-                    break;
-                case TypeTags.MAP_TAG:
-                    @SuppressWarnings("unchecked")
-                    BMap<BString, Object> mapValue = (BMap<BString, Object>) ballerinaValue;
-                    messageSerializer.setMapFieldValue(mapValue);
-                    break;
-                default:
-                    throw createSerdesError(UNSUPPORTED_DATA_TYPE + ballerinaType.getName(), SERDES_ERROR);
-            }
+            setFieldValue(ballerinaValue, ballerinaType);
         }
 
         return messageSerializer.getDynamicMessageBuilder();
+    }
+
+    private void setFieldValue(Object ballerinaValue, Type ballerinaType) {
+        switch (ballerinaType.getTag()) {
+            case TypeTags.NULL_TAG:
+                messageSerializer.setNullFieldValue(ballerinaValue);
+                break;
+            case TypeTags.INT_TAG:
+                messageSerializer.setIntFieldValue(ballerinaValue);
+                break;
+            case TypeTags.BYTE_TAG:
+                messageSerializer.setByteFieldValue((Integer) ballerinaValue);
+                break;
+            case TypeTags.FLOAT_TAG:
+                messageSerializer.setFloatFieldValue(ballerinaValue);
+                break;
+            case TypeTags.STRING_TAG:
+                messageSerializer.setStringFieldValue((BString) ballerinaValue);
+                break;
+            case TypeTags.BOOLEAN_TAG:
+                messageSerializer.setBooleanFieldValue((Boolean) ballerinaValue);
+                break;
+            case TypeTags.DECIMAL_TAG:
+                messageSerializer.setDecimalFieldValue((BDecimal) ballerinaValue);
+                break;
+            case TypeTags.UNION_TAG:
+                messageSerializer.setUnionFieldValue(ballerinaValue);
+                break;
+            case TypeTags.ARRAY_TAG:
+                messageSerializer.setArrayFieldValue((BArray) ballerinaValue);
+                break;
+            case TypeTags.RECORD_TYPE_TAG:
+                @SuppressWarnings("unchecked")
+                BMap<BString, Object> recordValue = (BMap<BString, Object>) ballerinaValue;
+                messageSerializer.setRecordFieldValue(recordValue);
+                break;
+            case TypeTags.TUPLE_TAG:
+                messageSerializer.setTupleFieldValue((BArray) ballerinaValue);
+                break;
+            case TypeTags.TABLE_TAG:
+                messageSerializer.setTableFieldValue((BTable<?, ?>) ballerinaValue);
+                break;
+            case TypeTags.MAP_TAG:
+                @SuppressWarnings("unchecked")
+                BMap<BString, Object> mapValue = (BMap<BString, Object>) ballerinaValue;
+                messageSerializer.setMapFieldValue(mapValue);
+                break;
+            case TypeTags.TYPE_REFERENCED_TYPE_TAG:
+                setFieldValue(ballerinaValue, ((ReferenceType) ballerinaType).getReferredType());
+                break;
+            default:
+                throw createSerdesError(UNSUPPORTED_DATA_TYPE + ballerinaType.getName(), SERDES_ERROR);
+        }
     }
 }

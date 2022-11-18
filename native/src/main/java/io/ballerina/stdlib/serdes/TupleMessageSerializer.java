@@ -21,6 +21,7 @@ package io.ballerina.stdlib.serdes;
 import com.google.protobuf.DynamicMessage.Builder;
 import io.ballerina.runtime.api.types.TupleType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class TupleMessageSerializer extends MessageSerializer {
     public List<MessageFieldData> getListOfMessageFieldData() {
         BArray tuple = (BArray) getBallerinaStructureTypeValue();
         List<MessageFieldData> messageFieldDataOfTupleElements = new ArrayList<>();
-        List<Type> elementTypes = ((TupleType) tuple.getType()).getTupleTypes();
+        List<Type> elementTypes = ((TupleType) TypeUtils.getReferredType(tuple.getType())).getTupleTypes();
         for (int i = 0; i < tuple.size(); i++) {
             Object elementData = tuple.get(i);
             Type elementType = elementTypes.get(i);
