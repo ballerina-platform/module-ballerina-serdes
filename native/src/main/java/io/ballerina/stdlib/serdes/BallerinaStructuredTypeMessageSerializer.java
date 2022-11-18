@@ -21,7 +21,6 @@ package io.ballerina.stdlib.serdes;
 import com.google.protobuf.DynamicMessage.Builder;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
@@ -78,7 +77,7 @@ public class BallerinaStructuredTypeMessageSerializer {
 
         for (MessageFieldData entry : fieldNamesAndValues) {
             Object ballerinaValue = entry.getBallerinaValue();
-            Type ballerinaType = TypeUtils.getReferredType(entry.getBallerinaType());
+            Type ballerinaType = entry.getBallerinaType();
             String fieldName = entry.getFieldName();
 
             messageSerializer.setCurrentFieldName(fieldName);

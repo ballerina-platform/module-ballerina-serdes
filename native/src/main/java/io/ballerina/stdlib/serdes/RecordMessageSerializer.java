@@ -44,7 +44,7 @@ public class RecordMessageSerializer extends MessageSerializer {
     public List<MessageFieldData> getListOfMessageFieldData() {
         @SuppressWarnings("unchecked")
         BMap<BString, Object> record = (BMap<BString, Object>) getBallerinaStructureTypeValue();
-        Map<String, Field> recordTypeFields = ((RecordType) record.getType()).getFields();
+        Map<String, Field> recordTypeFields = ((RecordType) TypeUtils.getReferredType(record.getType())).getFields();
         return record.entrySet().stream().map(entry -> {
             String fieldName = entry.getKey().getValue();
             Object fieldValue = entry.getValue();

@@ -48,7 +48,7 @@ public class TupleMessageSerializer extends MessageSerializer {
         List<Type> elementTypes = ((TupleType) TypeUtils.getReferredType(tuple.getType())).getTupleTypes();
         for (int i = 0; i < tuple.size(); i++) {
             Object elementData = tuple.get(i);
-            Type elementType = elementTypes.get(i);
+            Type elementType = TypeUtils.getReferredType(elementTypes.get(i));
             String fieldNameForElement = TUPLE_FIELD_NAME + SEPARATOR + (i + 1);
             messageFieldDataOfTupleElements.add(new MessageFieldData(fieldNameForElement, elementData, elementType));
         }
