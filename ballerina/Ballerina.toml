@@ -1,14 +1,14 @@
 [package]
 org = "ballerina"
 name = "serdes"
-version = "0.1.2"
-distribution = "2201.2.0"
+version = "0.2.0"
+distribution = "2201.4.0"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/serdes-native-0.1.2-SNAPSHOT.jar"
+path = "../native/build/libs/serdes-native-0.2.0-SNAPSHOT.jar"
 groupId = "io.ballerina.stdlib"
 artifactId = "serdes-native"
-version = "0.1.2"
+version = "0.2.0"
 
 [[platform.java11.dependency]]
 path = "./lib/protobuf-java-3.21.7.jar"
