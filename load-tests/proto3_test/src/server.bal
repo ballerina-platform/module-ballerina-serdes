@@ -17,20 +17,11 @@
 import ballerina/serdes;
 import ballerina/io;
 import ballerina/http;
-import ballerina/time;
 import ballerina/log;
-
-configurable int PORT = 9100;
-const time:Seconds EXECUTION_TIME = 3600;
-
-time:Utc startedTime = time:utcNow();
-time:Utc endedTime = time:utcNow();
 
 isolated int errorCount = 0;
 isolated int serializationCount = 0;
 isolated int deserializationCount = 0;
-
-boolean completed = false;
 
 type User record {
     readonly int id;
@@ -40,49 +31,33 @@ type User record {
 
 table<User> key(id) users = table [];
 
-service /serdes on new http:Listener(PORT) {
+service /serdes on new http:Listener(9100, httpVersion = http:HTTP_1_1) {
 
     function init() returns error? {
         check loadUserTable();
     }
 
-    resource function get 'start() returns boolean {
-        http:Client|error clientEP = new (string `http://localhost:${PORT}/serdes`);
-        if clientEP is error {
-            return false;
-        }
-        resetCountersAndTime();
-        _ = start beginCommunication(clientEP);
-        return true;
-    }
-
     resource function post next(http:Request request) returns byte[]|error {
         serdes:Proto3Schema serdes = check new (User);
         byte[] encodedPayload = check request.getBinaryPayload();
-        User nextUser = handleDeserialization(serdes, encodedPayload);
+        User|error user = handleDeserialization(serdes, encodedPayload);
+        User nextUser = user is User ? users.get((user.id + 1) % (users.length() - 1)) : users.get(0);
         return handleSerialization(serdes, nextUser);
     }
 
-    resource function get result() returns map<string>? {
-        if completed {
-            string errCount = "";
-            string sentCount = "";
-            string receivedCount = "";
-            string time = time:utcDiffSeconds(endedTime, startedTime).toString();
-
-            lock {
-                errCount = errorCount.toBalString();
-            }
-            lock {
-                sentCount = serializationCount.toString();
-            }
-            lock {
-                receivedCount = deserializationCount.toString();
-            }
-
-            return {errorCount: errCount, time, sentCount, receivedCount};
+    resource function get result() returns map<int> {
+        map<int> result = {};
+        lock {
+            result["errorCount"] = errorCount;
         }
-        return ();
+        lock {
+            result["operationCount"] = serializationCount;
+        }
+        lock {
+            result["operationCount"] = result.get("operationCount") + deserializationCount;
+        }
+        resetCounters();
+        return result;
     }
 }
 
@@ -96,33 +71,7 @@ function loadUserTable() returns error? {
     log:printInfo("User table loaded.");
 }
 
-function beginCommunication(http:Client clientEP) returns error? {
-    log:printInfo("Communication started");
-    completed = false;
-    final int totalUsers = users.length();
-    User user = users.get(0);
-
-    time:Utc expiryTime = time:utcAddSeconds(startedTime, EXECUTION_TIME);
-    while time:utcDiffSeconds(expiryTime, time:utcNow()) > 0d {
-        serdes:Proto3Schema serdes = check new (User);
-        byte[] encodedPayload = handleSerialization(serdes, user);
-        byte[] encodedResponse = check clientEP->post("/next", encodedPayload);
-        User response = handleDeserialization(serdes, encodedResponse);
-        user = users.get((response.id + 1) % (totalUsers - 1));
-    }
-
-    completed = true;
-    endedTime = time:utcNow();
-
-    log:printInfo("Communication ended",
-    keyValue = {
-        "Started time": startedTime,
-        "Ended time": endedTime,
-        "Total time elasped": time:utcDiffSeconds(endedTime, startedTime)
-    });
-}
-
-function resetCountersAndTime() {
+function resetCounters() {
     lock {
         errorCount = 0;
     }
@@ -132,9 +81,6 @@ function resetCountersAndTime() {
     lock {
         deserializationCount = 0;
     }
-
-    startedTime = time:utcNow();
-    endedTime = time:utcNow();
 }
 
 function handleSerialization(serdes:Schema serdes, User user) returns byte[] {
@@ -154,9 +100,8 @@ function handleSerialization(serdes:Schema serdes, User user) returns byte[] {
     return response;
 }
 
-function handleDeserialization(serdes:Schema serdes, byte[] payload) returns User {
+function handleDeserialization(serdes:Schema serdes, byte[] payload) returns User|error {
     User|serdes:Error user = serdes.deserialize(payload);
-    User nextUser = users.get(0);
     if user is serdes:Error {
         log:printError("Deserialization faild: ", user);
         lock {
@@ -166,7 +111,6 @@ function handleDeserialization(serdes:Schema serdes, byte[] payload) returns Use
         lock {
             deserializationCount += 1;
         }
-        nextUser = users.get((user.id + 1) % (users.length() - 1));
     }
-    return nextUser;
+    return user;
 }
