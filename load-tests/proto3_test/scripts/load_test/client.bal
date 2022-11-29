@@ -17,7 +17,7 @@
 import ballerina/io;
 import ballerina/http;
 import ballerina/time;
-import ballerina/lang.runtime;
+import ballerina/serdes;
 
 type User record {
     readonly int id;
@@ -25,40 +25,62 @@ type User record {
     int age;
 };
 
+const time:Seconds EXECUTION_TIME = 3600;
+
 public function main(string label, string outputCsvPath) returns error? {
-    http:Client loadTestClient = check new ("http://bal.perf.test", retryConfig = {count: 3, interval: 3});
+    http:Client loadTestClient = check new ("http://bal.perf.test");
 
-    boolean result = check loadTestClient->get("/serdes/start");
-    if result {
-        io:println("Client started communication");
-    } else {
-        io:println("Could not start communication: client creation failed in serdes service");
-    }
+    serdes:Proto3Schema serdes = check new (User);
+    User user = {id: 0, name: "default", age: 0};
+    byte[] encodedPayload = check serdes.serialize(user);
+    byte[] defaultPayload = encodedPayload;
 
-    map<string> testResults = {};
+    time:Utc startedTime = time:utcNow();
+    time:Utc expiryTime = time:utcAddSeconds(startedTime, EXECUTION_TIME);
+    io:println("Communication started");
 
-    boolean finished = false;
-    while !finished {
-        map<string>?|error res = loadTestClient->get("/serdes/result");
-        if res is error {
-            io:println("Error occured", res);
-        } else if res is map<string> {
-            finished = true;
-            testResults = res;
-        } else {
-            io:println("waiting for result...");
+    time:Utc timer = time:utcNow();
+    int sampleCount = 0;
+    while time:utcDiffSeconds(expiryTime, time:utcNow()) > 0d {
+        do {
+            byte[] encodedResponse = check loadTestClient->post("/serdes/next", encodedPayload);
+            if encodedResponse.length() > 0 {
+                encodedPayload = encodedResponse;
+            } else {
+                encodedPayload = defaultPayload;
+            }
+            sampleCount += 1;
+            if isOneMinutePassed(timer) {
+                user = check serdes.deserialize(encodedPayload);
+                io:println("User: ", user);
+                timer = time:utcNow();
+            }
+        } on fail error e {
+            io:println(e);
         }
-        runtime:sleep(60);
     }
-    int errorCount = check int:fromString(testResults.get("errorCount"));
-    decimal time = check decimal:fromString(testResults.get("time"));
-    int sentCount = check int:fromString(testResults.get("sentCount"));
-    int receivedCount = check int:fromString(testResults.get("receivedCount"));
+
+    time:Utc endedTime = time:utcNow();
+    time:Seconds timeElasped = time:utcDiffSeconds(endedTime, startedTime);
+    io:println("Communication ended: ", {
+        "Started time": startedTime,
+        "Ended time": endedTime,
+        "Total time elasped": timeElasped
+    });
+
+    map<int> testResults = check loadTestClient->get("/serdes/result");
+       
+    int errorCount = testResults.get("errorCount");
+    int operationCount = testResults.get("operationCount");
     any[] results = [
-        label, sentCount, <float>time / <float>receivedCount,
-        0, 0, 0, 0, 0, 0, <float>errorCount / <float>sentCount,
-        <float>receivedCount / <float>time, 0, 0, time:utcNow()[0], 0, 1];
+        label, sampleCount, <float>timeElasped / <float>operationCount,
+        0, 0, 0, 0, 0, 0, <float>errorCount / <float>sampleCount,
+        <float>operationCount / <float>timeElasped, 0, 0, time:utcNow()[0], 0, 1];
     check writeResultsToCsv(results, outputCsvPath);
+}
+
+function isOneMinutePassed(time:Utc timer) returns boolean {
+    return time:utcDiffSeconds(time:utcNow(), timer) > 60d;
 }
 
 function writeResultsToCsv(any[] results, string outputPath) returns error? {
