@@ -28,7 +28,7 @@ type User record {
 const time:Seconds EXECUTION_TIME = 3600;
 
 public function main(string label, string outputCsvPath) returns error? {
-    http:Client loadTestClient = check new ("http://bal.perf.test");
+    http:Client loadTestClient = check new ("http://bal.perf.test", httpVersion = http:HTTP_1_1);
 
     serdes:Proto3Schema serdes = check new (User);
     User user = {id: 0, name: "default", age: 0};

@@ -31,7 +31,7 @@ type User record {
 
 table<User> key(id) users = table [];
 
-service /serdes on new http:Listener(9100) {
+service /serdes on new http:Listener(9100, httpVersion = http:HTTP_1_1) {
 
     function init() returns error? {
         check loadUserTable();
