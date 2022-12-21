@@ -4,7 +4,7 @@ Ballerina SerDes Library
 [![Build](https://github.com/ballerina-platform/module-ballerina-serdes/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerina-serdes/actions?query=workflow%3ABuild)
 [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-serdes/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-serdes)
 [![Trivy](https://github.com/ballerina-platform/module-ballerina-serdes/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-serdes/actions/workflows/trivy-scan.yml)
-[![GraalVM Check](https://img.shields.io/github/workflow/status/ballerina-platform/module-ballerina-serdes/Build%20with%20bal%20test%20native?label=GraalVM%20Check)](https://github.com/ballerina-platform/module-ballerina-serdes/actions/workflows/build-with-bal-test-native.yml)
+[![GraalVM Check](https://github.com/ballerina-platform/module-ballerina-serdes/actions/workflows/build-with-bal-test-native.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-serdes/actions/workflows/build-with-bal-test-native.yml)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-serdes.svg)](https://github.com/ballerina-platform/module-ballerina-serdes/commits/main)
 [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/serdes.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fserdes)
 

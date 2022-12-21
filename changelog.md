@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.1.2] - 2022-11-29 
+
 ### Changed
 - [[#3463] API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
 
