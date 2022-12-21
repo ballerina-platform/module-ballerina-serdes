@@ -133,4 +133,5 @@ public class BallerinaStructuredTypeMessageSerializer {
 
         return messageSerializer.getDynamicMessageBuilder();
     }
+
 }

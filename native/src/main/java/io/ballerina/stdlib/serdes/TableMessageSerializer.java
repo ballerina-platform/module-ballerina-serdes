@@ -96,7 +96,7 @@ public class TableMessageSerializer extends MessageSerializer {
     @Override
     public List<MessageFieldData> getListOfMessageFieldData() {
         BTable<?, ?> table = (BTable<?, ?>) getBallerinaStructureTypeValue();
-        Type constrainedType = ((TableType) TypeUtils.getType(table)).getConstrainedType();
+        Type constrainedType = ((TableType) TypeUtils.getReferredType(table.getType())).getConstrainedType();
         Type referredConstrainedType = TypeUtils.getReferredType(constrainedType);
         return table.values().stream().map(value -> new MessageFieldData(TABLE_ENTRY, value, referredConstrainedType))
                 .collect(Collectors.toList());
