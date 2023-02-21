@@ -4,7 +4,11 @@ This file contains all the notable changes done to the Ballerina serdes package 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+
 ## [0.2.0] - 2023-02-20
+
 - This version maintains compatibility with Lang Update 4 without any external changes.
 
 ## [0.1.2] - 2022-11-29 
