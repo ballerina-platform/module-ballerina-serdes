@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+- [[#4441] Add Deprecation Notice to SerDes Module](https://github.com/ballerina-platform/ballerina-standard-library/issues/4441)
 
 ## [0.2.0] - 2023-02-20
 
