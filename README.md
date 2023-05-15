@@ -8,7 +8,7 @@ Ballerina SerDes Library
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-serdes.svg)](https://github.com/ballerina-platform/module-ballerina-serdes/commits/main)
 [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/serdes.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fserdes)
 
->**Deprecation Notice:** This library is deprecated and will no longer be maintained or updated. Please use the [xlibb/serdes](https://github.com/xlibb/module-serdes) library instead.
+>**Deprecation Notice:** This library is deprecated and will no longer be maintained or updated.
 
 
 This library provides APIs for serializing and deserializing subtypes of Ballerina anydata type.

@@ -1,5 +1,5 @@
 ##
->**Deprecation Notice:** This library is deprecated and will no longer be maintained or updated. Please use the [xlibb/serdes](https://github.com/xlibb/module-serdes) library instead.
+>**Deprecation Notice:** This library is deprecated and will no longer be maintained or updated.
 
 ## Package overview
 
