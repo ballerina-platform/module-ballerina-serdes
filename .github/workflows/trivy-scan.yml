@@ -2,8 +2,6 @@ name: Trivy
 
 on:
     workflow_dispatch:
-    schedule:
-        -   cron: '30 20 * * *'
 
 jobs:
     ubuntu-build:

@@ -1,8 +1,6 @@
 name: 'Close stale pull requests'
 
 on:
-  schedule:
-    - cron: '30 19 * * *'
   workflow_dispatch:
 
 jobs:
