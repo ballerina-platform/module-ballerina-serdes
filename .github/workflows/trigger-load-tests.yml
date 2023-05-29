@@ -11,8 +11,6 @@ on:
         description: 'Cluster name'
         default: 'serdes-perf-cluster-test'
         required: false
-  schedule:
-    - cron: '30 1 * * *'
 
 jobs:
     call_stdlib_trigger_load_test_workflow:
