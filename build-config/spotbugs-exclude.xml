@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  These findings were not flagged before because the repo had no spotbugs-exclude.xml
+  and ran against the much older SpotBugs 4.5.1, which did not include these detectors.
+  The Gradle 9.5.1 / Ballerina Gradle plugin 4.0.0 migration bumped SpotBugs to 6.5.1,
+  which surfaced them for the first time. They are pre-existing code patterns in
+  io.ballerina.stdlib.serdes, not introduced by this migration. Suppressed here, as
+  directed by the migration guide, to unblock the upgrade without silently deciding
+  the findings don't matter — flagged explicitly in this PR's description.
+-->
+<FindBugsFilter>
+    <Match>
+        <Package name="io.ballerina.stdlib.serdes" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Package name="io.ballerina.stdlib.serdes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Package name="io.ballerina.stdlib.serdes" />
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+    <Match>
+        <Package name="io.ballerina.stdlib.serdes" />
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Package name="io.ballerina.stdlib.serdes.protobuf" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Package name="io.ballerina.stdlib.serdes.protobuf" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+</FindBugsFilter>
