@@ -46,6 +46,11 @@ tasks.withType(Checkstyle) {
 
 checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 compileJava {
     doFirst {
         options.compilerArgs = [
@@ -56,9 +61,9 @@ compileJava {
 }
 
 spotbugsMain {
-    effort "max"
-    reportLevel "low"
-    reportsDir = file("$project.buildDir/reports/spotbugs")
+    effort = 'max'
+    reportLevel = 'low'
+    reportsDir = layout.buildDirectory.dir("reports/spotbugs").get().asFile
     reports {
         html.enabled true
         text.enabled = true

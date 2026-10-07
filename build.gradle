@@ -17,7 +17,7 @@
 
 plugins {
     id "com.github.spotbugs" version "${githubSpotbugsVersion}"
-    id "com.github.johnrengelman.shadow" version "${githubJohnrengelmanShadowVersion}"
+    id "com.gradleup.shadow" version "${githubJohnrengelmanShadowVersion}"
     id "de.undercouch.download" version "${underCouchDownloadVersion}"
     id "net.researchgate.release" version "${researchgateReleaseVersion}"
 }
@@ -94,7 +94,14 @@ release {
     }
 }
 
-task build {
-    dependsOn('serdes-native:build')
-    dependsOn('serdes-ballerina:build')
+if (tasks.findByName('build') == null) {
+    task build {
+        dependsOn(':serdes-native:build')
+        dependsOn(':serdes-ballerina:build')
+    }
+} else {
+    tasks.named('build') {
+        dependsOn(':serdes-native:build')
+        dependsOn(':serdes-ballerina:build')
+    }
 }
